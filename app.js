@@ -1203,7 +1203,7 @@ function selectStudent(studentId) {
   renderMiniLedger(student);
 
   // Handle Mobile layout push
-  if (window.innerWidth <= 600) {
+  if (window.innerWidth <= 768) {
     document.getElementById('students-pane-details').classList.add('active-detail');
   }
 }

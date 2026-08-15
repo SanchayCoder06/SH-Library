@@ -1983,6 +1983,7 @@ a {
   align-items: center;
   justify-content: center;
   transition: all 150ms ease;
+}
 .seat-btn:hover:not(:disabled) {
   background-color: var(--md-state-hover);
   transform: scale(1.05);
@@ -2247,36 +2248,57 @@ a {
    RESPONSIVE DESIGN BREAKPOINTS
    ========================================================================== */
 
-/* Mobile layouts <=600px */
+/* Default / Desktop Rules */
 .mobile-only { display: none !important; }
+.desktop-only { display: flex !important; }
 
-@media (max-width: 600px) {
+/* Mobile layouts <= 768px */
+@media (max-width: 768px) {
   .mobile-only { display: flex !important; }
   .desktop-only { display: none !important; }
 
   /* App layouts */
-  .nav-rail { display: none; }
-  .top-app-bar { padding: 0 16px; }
-  .top-app-bar .search-container { display: none; } /* Search goes full-screen trigger or nested in view page */
+  .app-container {
+    flex-direction: column !important;
+  }
+  .nav-rail {
+    display: none !important;
+  }
+  .main-content {
+    margin-left: 0 !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+  }
+  .top-app-bar {
+    padding: 0 16px !important;
+  }
+  .top-app-bar .search-container {
+    display: none !important;
+  }
   
   .view-content-wrapper {
-    padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px)) !important; /* Generous clearance above Bottom Nav Bar */
+    padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px)) !important;
     -webkit-overflow-scrolling: touch;
     box-sizing: border-box;
+    overflow-x: hidden !important;
   }
   .app-view {
     padding: 16px 16px calc(120px + env(safe-area-inset-bottom, 0px)) 16px !important;
     -webkit-overflow-scrolling: touch;
     box-sizing: border-box;
     min-height: calc(100vh - 80px);
+    overflow-x: hidden !important;
   }
 
-  /* Bottom nav mobile styling with curved top corners */
+  /* Bottom navigation bar for mobile */
   .bottom-nav {
+    display: flex !important;
     position: fixed;
     bottom: 0;
     left: 0;
-    width: 100vw;
+    right: 0;
+    width: 100%;
     height: calc(72px + env(safe-area-inset-bottom, 0px));
     padding-bottom: env(safe-area-inset-bottom, 0px);
     background-color: var(--md-sys-color-surface-container);
@@ -2284,23 +2306,25 @@ a {
     border-top-left-radius: 24px;
     border-top-right-radius: 24px;
     box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.12);
-    display: flex;
     justify-content: space-around;
     align-items: center;
     z-index: 100;
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
+    box-sizing: border-box;
   }
   .bottom-nav-item {
     background: transparent;
     border: none;
+    outline: none;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 4px;
     cursor: pointer;
     color: var(--md-sys-color-on-surface-variant);
-    flex-grow: 1;
+    flex: 1;
+    padding: 0;
   }
   .bottom-nav-icon-container {
     position: relative;
@@ -2330,7 +2354,7 @@ a {
     font-size: 12px;
   }
 
-  /* Mobile Floating Action Button (FAB) - Perfectly centered (+) icon */
+  /* Mobile Floating Action Button (FAB) */
   .fab-extended {
     display: flex !important;
     position: fixed;
@@ -2361,144 +2385,126 @@ a {
     margin: 0 !important;
   }
 
-  /* Dashboard Carousel scroll feed */
+  /* Dashboard Stats Grid on Mobile */
   .stats-carousel-wrapper {
-    overflow-x: auto;
-    padding-bottom: 8px;
-    margin-right: -16px;
+    overflow-x: hidden !important;
+    width: 100% !important;
   }
   .stats-grid {
-    display: flex;
-    width: max-content;
-    padding-right: 16px;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 12px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
   .stat-card {
-    width: 260px;
-    flex-shrink: 0;
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
   }
   .dashboard-sections {
-    grid-template-columns: 1fr;
-    gap: 16px;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+    width: 100% !important;
   }
   .dashboard-list-card {
-    height: 500px;
+    height: auto !important;
+    min-height: 380px !important;
   }
 
-  /* Fees View Mobile layout - Full visibility for Transactions */
-  .fees-content-grid {
+  /* Students Split View Mobile sliding mechanism */
+  .split-view-container {
+    height: auto !important;
+    min-height: 480px !important;
+    border-radius: 20px !important;
+    overflow: hidden !important;
+    position: relative !important;
+    border: 1px solid var(--md-sys-color-surface-variant) !important;
+  }
+  .split-pane-list {
+    width: 100% !important;
+    border-right: none !important;
+    border-radius: 20px !important;
+  }
+  .split-pane-details {
+    position: absolute !important;
+    top: 0 !important;
+    left: 100% !important;
+    width: 100% !important;
+    height: 100% !important;
+    background-color: var(--md-sys-color-surface) !important;
+    transition: left 280ms cubic-bezier(0.2, 0, 0, 1) !important;
+    z-index: 110 !important;
+    padding: 16px !important;
+    border-radius: 20px !important;
+    overflow-y: auto !important;
+    box-sizing: border-box !important;
+  }
+  .split-pane-details.active-detail {
+    left: 0 !important;
+  }
+  .detail-grid {
     grid-template-columns: 1fr !important;
-    gap: 20px;
+  }
+
+  /* Fees Mobile layout */
+  .fees-summary-row {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  .fees-content-grid {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+  .months-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
   }
   .fees-log-panel {
     max-height: none !important;
     height: auto !important;
     width: 100% !important;
     border-radius: 20px !important;
-    box-sizing: border-box;
+    box-sizing: border-box !important;
     padding: 16px !important;
-    margin-bottom: 24px;
+    margin-bottom: 24px !important;
   }
   .transaction-list-container {
     max-height: none !important;
     overflow-y: visible !important;
   }
 
-  /* Split view adjustments for Mobile with curved corners */
-  .split-view-container {
-    height: 100%;
-    border-radius: 20px;
-    overflow: hidden;
-    border: 1px solid var(--md-sys-color-surface-variant);
-  }
-  .split-pane-list {
-    width: 100%;
-    border-right: none;
-    border-radius: 20px;
-  }
-  .split-pane-details {
-    position: absolute;
-    top: 0;
-    left: 100%;
-    width: 100%;
-    height: 100%;
-    background-color: var(--md-sys-color-surface);
-    transition: left 300ms var(--easing-standard);
-    z-index: 110;
-    padding: 16px;
-    border-radius: 20px;
-  }
-  .split-pane-details.active-detail {
-    left: 0;
-  }
-  .detail-grid {
-    grid-template-columns: 1fr;
-  }
-
-  /* Add/Edit wizard modal rounded sheet on mobile */
-  .student-modal-card {
-    width: 100vw;
-    max-height: 92vh;
-    border-top-left-radius: 24px;
-    border-top-right-radius: 24px;
-    position: fixed;
-    bottom: 0;
-    top: auto;
-    left: 0;
-    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.25);
-  }
-  .stepper-main-container {
-    padding: 16px;
-  }
-  .stepper-actions {
-    border-radius: 0;
-  }
-
-  /* Fees and Contact layout grids */
-  .fees-summary-row {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-  .fees-content-grid {
-    grid-template-columns: 1fr;
-  }
-  .months-grid {
-    grid-template-columns: 1fr 1fr;
-  }
+  /* Contact View Mobile layout */
   .contact-grid {
-    grid-template-columns: 1fr;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
   }
   .quick-call-actions {
-    flex-direction: column;
+    flex-direction: column !important;
   }
 
-  /* Phone optimization refinements: typography, tables, map, dialogs */
-  .display-large { font-size: 38px !important; line-height: 46px !important; }
-  .display-medium { font-size: 32px !important; line-height: 38px !important; }
-  .display-small { font-size: 26px !important; line-height: 32px !important; }
-  .headline-large { font-size: 24px !important; line-height: 30px !important; }
-  .headline-medium { font-size: 20px !important; line-height: 26px !important; }
-  .headline-small { font-size: 18px !important; line-height: 24px !important; }
-  .title-large { font-size: 16px !important; line-height: 22px !important; }
-  .title-medium { font-size: 14px !important; line-height: 20px !important; }
-
-  .dialog-content {
-    padding: 0 16px 16px 16px !important;
+  /* Add/Edit student wizard sheet on mobile */
+  .student-modal-card {
+    width: 100vw !important;
+    max-height: 92vh !important;
+    border-top-left-radius: 24px !important;
+    border-top-right-radius: 24px !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    top: auto !important;
+    left: 0 !important;
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.25) !important;
   }
-  .batch-ledger-table th,
-  .batch-ledger-table td {
-    padding: 6px 8px !important;
-    font-size: 13px !important;
+  .stepper-sidebar {
+    display: none !important;
   }
-
-  .month-tile {
-    padding: 12px !important;
-    min-height: 100px !important;
-  }
-  .month-tile-stats {
-    gap: 2px !important;
-  }
-  .month-tile-stats span {
-    font-size: 10px !important;
+  .stepper-main-container {
+    padding: 16px !important;
   }
 
   /* Scaled-down seat map grid to fit small phone viewports */
@@ -2506,60 +2512,33 @@ a {
     gap: 8px !important;
   }
   .seat-btn {
-    width: 38px !important;
-    height: 38px !important;
+    width: 36px !important;
+    height: 36px !important;
     font-size: 11px !important;
     border-radius: 8px !important;
   }
 }
 
-/* Tablet layouts 600px - 1024px */
-@media (min-width: 601px) and (max-width: 1024px) {
+/* Tablet & Desktop layouts >= 769px */
+@media (min-width: 769px) {
   .nav-rail {
-    width: 80px !important;
+    display: flex !important;
   }
-  .nav-rail.expanded {
-    width: 80px !important;
-  }
-  .nav-rail .rail-logo,
-  .nav-rail .rail-header button,
-  .nav-rail .nav-label {
+  .bottom-nav {
     display: none !important;
   }
-  .nav-rail .rail-nav-item {
-    flex-direction: column !important;
-    padding: 8px 0 !important;
+  .mobile-only {
+    display: none !important;
   }
-  .nav-rail .nav-icon-wrapper {
-    width: 56px !important;
-    height: 32px !important;
+  .desktop-only {
+    display: flex !important;
+  }
+  .split-pane-details {
+    position: relative !important;
+    left: 0 !important;
   }
   
-  .stats-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-  .dashboard-sections {
-    grid-template-columns: 1fr;
-  }
-  .split-pane-list {
-    width: 280px;
-  }
-  .detail-grid {
-    grid-template-columns: 1fr;
-  }
-  .fees-content-grid {
-    grid-template-columns: 1.2fr 1fr;
-  }
-  .months-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-  .contact-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* Centered Modal styling for Record Payment sheet on Desktop/Tablet */
-@media (min-width: 601px) {
+  /* Centered Modal styling for Record Payment sheet on Desktop */
   .bottom-sheet-overlay {
     justify-content: center;
     align-items: center;
