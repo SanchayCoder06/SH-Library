@@ -301,6 +301,16 @@ let notificationsListener = null;
 let isSyncing = false;
 let startupViewResolved = false;
 
+const DEFAULT_FIREBASE_CONFIG = {
+  apiKey: "AIzaSyByMQmFGarZaz1fMtcqB0UTqgVF6L4ojDk",
+  authDomain: "sh-library-c1c1e.firebaseapp.com",
+  projectId: "sh-library-c1c1e",
+  storageBucket: "sh-library-c1c1e.firebasestorage.app",
+  messagingSenderId: "656925943784",
+  appId: "1:656925943784:web:d6c202cd613b5b3ee8a65d",
+  measurementId: "G-PRFPZRX602"
+};
+
 function parseFirebaseConfig(rawVal) {
   let cleaned = rawVal.trim();
   // Strip variable declarations if they pasted the entire JS snippet
@@ -318,11 +328,21 @@ function parseFirebaseConfig(rawVal) {
 }
 
 function initFirebase() {
+  let config = null;
   const configStr = localStorage.getItem('sh_firebase_config');
-  if (!configStr) return false;
+  if (configStr) {
+    try {
+      config = JSON.parse(configStr);
+    } catch (e) {
+      config = null;
+    }
+  }
+  
+  if (!config || !config.apiKey || !config.projectId) {
+    config = DEFAULT_FIREBASE_CONFIG;
+  }
 
   try {
-    const config = JSON.parse(configStr);
     if (firebase.apps.length === 0) {
       firebaseApp = firebase.initializeApp(config);
     } else {
@@ -332,11 +352,11 @@ function initFirebase() {
     
     // Enable offline data persistence for PWAs
     db.enablePersistence().catch(err => {
-      console.warn("Firestore offline persistence failed:", err.code);
+      console.warn("Firestore offline persistence notice:", err.code);
     });
     return true;
   } catch (e) {
-    console.error("Failed to parse Firebase config:", e);
+    console.error("Failed to initialize Firebase:", e);
     return false;
   }
 }
@@ -500,8 +520,12 @@ function setupAuthHandlers() {
     }
   });
 
-  // Google Sign-In (Firebase Auth Popup or Setup dialog)
+  // Google Sign-In (Firebase Auth Popup)
   googleBtn.addEventListener('click', () => {
+    if (!firebaseApp) {
+      initFirebase();
+      setupFirebaseAuthState();
+    }
     if (firebaseApp) {
       const provider = new firebase.auth.GoogleAuthProvider();
       firebase.auth().signInWithPopup(provider)
@@ -513,7 +537,7 @@ function setupAuthHandlers() {
           showSnackbar("Google Sign-In failed: " + error.message);
         });
     } else {
-      document.getElementById('firebase-setup-dialog').classList.remove('hidden');
+      showSnackbar("Firebase connection failed. Please check internet connection.");
     }
   });
 
