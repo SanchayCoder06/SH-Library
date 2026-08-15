@@ -2232,12 +2232,15 @@ a {
   .top-app-bar .search-container { display: none; } /* Search goes full-screen trigger or nested in view page */
   
   .view-content-wrapper {
-    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)); /* Space for Bottom Nav Bar */
+    padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px)) !important; /* Generous clearance above Bottom Nav Bar */
     -webkit-overflow-scrolling: touch;
+    box-sizing: border-box;
   }
   .app-view {
-    padding: 16px;
+    padding: 16px 16px calc(120px + env(safe-area-inset-bottom, 0px)) 16px !important;
     -webkit-overflow-scrolling: touch;
+    box-sizing: border-box;
+    min-height: calc(100vh - 80px);
   }
 
   /* Bottom nav mobile styling with curved top corners */

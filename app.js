@@ -916,13 +916,33 @@ function setupNavigators() {
     triggerNavigation('students');
   });
 
-  // Notifications dropdown toggling
+  // Notifications dropdown toggling and mark as read
   const notifBtn = document.getElementById('notifications-btn');
   const notifMenu = document.getElementById('notifications-dropdown');
+  const notifCount = document.getElementById('notification-count');
+
   notifBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    notifMenu.classList.toggle('hidden');
+    const isHidden = notifMenu.classList.contains('hidden');
+    if (isHidden) {
+      notifMenu.classList.remove('hidden');
+      // Mark notifications as seen
+      localStorage.setItem('sh_notif_last_seen', Date.now().toString());
+      if (notifCount) notifCount.classList.add('hidden');
+    } else {
+      notifMenu.classList.add('hidden');
+    }
   });
+
+  const clearNotifBtn = document.getElementById('clear-notifications-btn');
+  if (clearNotifBtn) {
+    clearNotifBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      localStorage.removeItem(STORAGE_KEYS.NOTIFICATIONS);
+      localStorage.setItem('sh_notif_last_seen', Date.now().toString());
+      renderNotifications();
+    });
+  }
 
   // Avatar settings toggles
   const avatarBtn = document.getElementById('profile-dropdown-btn');
@@ -2217,12 +2237,22 @@ function renderNotifications() {
   const countBadge = document.getElementById('notification-count');
   const container = document.getElementById('notification-list');
 
-  if (list.length === 0) {
+  const lastSeen = parseInt(localStorage.getItem('sh_notif_last_seen') || '0', 10);
+  const unreadCount = list.filter(item => {
+    const itemTime = parseInt((item.id || '').replace('notif_', ''), 10);
+    return isNaN(itemTime) || itemTime > lastSeen;
+  }).length;
+
+  if (unreadCount === 0) {
     countBadge.classList.add('hidden');
+  } else {
+    countBadge.innerText = unreadCount;
+    countBadge.classList.remove('hidden');
+  }
+
+  if (list.length === 0) {
     container.innerHTML = '<li class="dropdown-empty-state">No new alerts</li>';
   } else {
-    countBadge.innerText = list.length;
-    countBadge.classList.remove('hidden');
     container.innerHTML = '';
     list.slice(0, 5).forEach(item => {
       const li = document.createElement('li');
