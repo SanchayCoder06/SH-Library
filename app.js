@@ -681,23 +681,43 @@ function getStudentMonthlyRate(student) {
   return 500; // Standard monthly rate
 }
 
+function getStudentJoiningInfo(student) {
+  if (!student || !student.joining) return { year: 2026, monthIndex: 0 };
+  const parts = String(student.joining).split('-');
+  const year = parseInt(parts[0], 10) || 2026;
+  const monthIndex = Math.max(0, Math.min(11, (parseInt(parts[1], 10) || 1) - 1)); // 0-indexed (0 = Jan, 7 = Aug)
+  return { year, monthIndex };
+}
+
 function getStudentMonthStatus(student, yearStr, month) {
   const monthIdx = MONTHS_LIST.indexOf(month);
+  const targetYear = parseInt(yearStr, 10) || 2026;
   const payments = (student && student.payments && student.payments[yearStr]) || {};
   const payment = payments[month];
   const studentRate = getStudentMonthlyRate(student);
 
-  // 1. If explicitly recorded as Paid
+  // 1. If explicitly recorded as Paid by user
   if (payment && payment.status === 'Paid') {
     return { status: 'Paid', amount: parseInt(payment.amount || studentRate, 10), isPaid: true, isDue: false, isUpcoming: false };
   }
 
-  // 2. If explicitly recorded as Due
+  // 2. If explicitly recorded as Due by user
   if (payment && payment.status === 'Due') {
     return { status: 'Due', amount: parseInt(payment.amount || studentRate, 10), isPaid: false, isDue: true, isUpcoming: false };
   }
 
-  // 3. Find all months marked Paid in this year
+  const { year: joinYear, monthIndex: joinMonthIdx } = getStudentJoiningInfo(student);
+
+  // If before joining year or prior to/in the joining month itself:
+  // Dues are NOT added automatically. Previous months and joining month are added manually by the user.
+  const isPriorOrJoiningMonth = (targetYear < joinYear) || (targetYear === joinYear && monthIdx <= joinMonthIdx);
+
+  if (isPriorOrJoiningMonth) {
+    return { status: 'Upcoming', amount: 0, isPaid: false, isDue: false, isUpcoming: true };
+  }
+
+  // 3. For months AFTER the joining month (starting from the next month itself):
+  // Check if any subsequent month was marked Paid (i.e. skipped prior month after joining)
   const paidIndices = [];
   MONTHS_LIST.forEach((m, idx) => {
     if (payments[m] && payments[m].status === 'Paid') {
@@ -705,17 +725,26 @@ function getStudentMonthStatus(student, yearStr, month) {
     }
   });
 
-  // If student has paid at least 1 month, check if this month was skipped before the latest paid month
   if (paidIndices.length > 0) {
     const maxPaidIdx = Math.max(...paidIndices);
     if (monthIdx < maxPaidIdx) {
-      // Skipped prior month
+      // Skipped month after joining
       return { status: 'Due', amount: (payment && payment.amount ? parseInt(payment.amount, 10) : studentRate), isPaid: false, isDue: true, isUpcoming: false };
     }
   }
 
-  // For all remaining/unrecorded months (after paid month or unbilled):
-  // Always Upcoming with NO due, never auto-calculated from current date
+  // Check if this month is past/present relative to current real calendar month
+  const now = new Date();
+  const nowYear = now.getFullYear();
+  const nowMonthIdx = now.getMonth();
+
+  const isEligiblePastOrCurrentMonth = (targetYear < nowYear) || (targetYear === nowYear && monthIdx <= nowMonthIdx);
+
+  if (isEligiblePastOrCurrentMonth) {
+    return { status: 'Due', amount: studentRate, isPaid: false, isDue: true, isUpcoming: false };
+  }
+
+  // Unreached future month
   return { status: 'Upcoming', amount: 0, isPaid: false, isDue: false, isUpcoming: true };
 }
 
