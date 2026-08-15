@@ -1206,8 +1206,6 @@ function selectStudent(studentId) {
   document.getElementById('detail-seat-number').innerText = `Seat ${student.seat || 'Unassigned'}`;
   document.getElementById('detail-contact').innerText = student.phone;
   document.getElementById('detail-contact').setAttribute('href', `tel:${student.phone}`);
-  const waBtn = document.getElementById('detail-whatsapp-btn');
-  if (waBtn) waBtn.setAttribute('href', `https://wa.me/91${(student.phone || '').trim()}`);
   document.getElementById('detail-aadhar').innerText = formatAadhar(student.aadhar);
   document.getElementById('detail-address').innerText = student.address;
   document.getElementById('detail-joining-date').innerText = formatDate(student.joining);
