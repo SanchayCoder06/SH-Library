@@ -831,7 +831,7 @@
       </div>
     </main>
 
-    <!-- Mobile Bottom Navigation Bar -->
+    <!-- Mobile Bottom Navigation Bar with Centered (+) Button -->
     <nav class="bottom-nav mobile-only" id="bottom-nav">
       <button class="bottom-nav-item active ripple" data-view="dashboard">
         <div class="bottom-nav-icon-container">
@@ -849,20 +849,17 @@
         <span class="label-medium bottom-nav-label">Students</span>
       </button>
 
+      <!-- Center Action Button (+) for Mobile -->
+      <button class="bottom-nav-fab-center add-student-trigger ripple" id="fab-center-btn" aria-label="Add Student" title="Add Student">
+        <span class="material-symbols-outlined">add</span>
+      </button>
+
       <button class="bottom-nav-item ripple" data-view="fees">
         <div class="bottom-nav-icon-container">
           <div class="pill-active-indicator"></div>
           <span class="material-symbols-outlined">payments</span>
         </div>
         <span class="label-medium bottom-nav-label">Fees</span>
-      </button>
-
-      <button class="bottom-nav-item ripple" data-view="contact">
-        <div class="bottom-nav-icon-container">
-          <div class="pill-active-indicator"></div>
-          <span class="material-symbols-outlined">map</span>
-        </div>
-        <span class="label-medium bottom-nav-label">Contact</span>
       </button>
 
       <button class="bottom-nav-item ripple" data-view="profile">
@@ -873,12 +870,6 @@
         <span class="label-medium bottom-nav-label">Profile</span>
       </button>
     </nav>
-
-    <!-- Mobile Extended Floating Action Button (FAB) -->
-    <button class="fab-extended ripple add-student-trigger" id="fab-add-student">
-      <span class="material-symbols-outlined">add</span>
-      <span class="fab-label label-large">Add Student</span>
-    </button>
 
   </div>
 
