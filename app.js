@@ -911,9 +911,17 @@ function setupNavigators() {
   });
 
   // Global Quick click triggers
-  document.getElementById('dash-view-all-students-btn').addEventListener('click', () => {
-    triggerNavigation('students');
-  });
+  const viewAllBtn = document.getElementById('dash-view-all-students-btn');
+  if (viewAllBtn) viewAllBtn.addEventListener('click', () => triggerNavigation('students'));
+
+  const scFees = document.getElementById('dash-shortcut-fees');
+  if (scFees) scFees.addEventListener('click', () => triggerNavigation('fees'));
+
+  const scStudents = document.getElementById('dash-shortcut-students');
+  if (scStudents) scStudents.addEventListener('click', () => triggerNavigation('students'));
+
+  const scContact = document.getElementById('dash-shortcut-contact');
+  if (scContact) scContact.addEventListener('click', () => triggerNavigation('contact'));
 
   // Notifications dropdown toggling and mark as read
   const notifBtn = document.getElementById('notifications-btn');
@@ -966,6 +974,15 @@ function setupNavigators() {
 // 5. DASHBOARD DATA LOADER
 // ==========================================================================
 function loadDashboardData() {
+  // Dynamic Greeting based on time of day
+  const hour = new Date().getHours();
+  const greetingElem = document.getElementById('dash-greeting-text');
+  if (greetingElem) {
+    if (hour < 12) greetingElem.innerText = 'Good morning 👋';
+    else if (hour < 17) greetingElem.innerText = 'Good afternoon 👋';
+    else greetingElem.innerText = 'Good evening 👋';
+  }
+
   // Hide dashboard shimmer immediately when data is populated
   const shimmer = document.getElementById('dashboard-shimmer');
   if (shimmer) shimmer.classList.add('hidden');
@@ -1027,8 +1044,8 @@ function loadDashboardData() {
         <div class="student-list-item-left">
           ${imgMarkup}
           <div class="student-meta-info">
-            <span class="title-medium">${student.name}</span>
-            <span class="body-small text-secondary">Seat ${student.seat || '--'} • Joined ${formatDate(student.joining)}</span>
+            <span class="title-medium font-bold">${student.name}</span>
+            <span class="body-small text-secondary">Seat ${student.seat || '--'} • Due: ${student.dueDay || '5'}th</span>
           </div>
         </div>
         <div class="student-list-item-right">

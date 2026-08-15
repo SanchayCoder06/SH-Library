@@ -1015,9 +1015,66 @@ a {
   gap: 16px;
   width: 100%;
 }
+
+/* Mobile Dashboard Hero Banner */
+.dash-hero-card {
+  background: linear-gradient(135deg, rgba(215, 227, 255, 0.6) 0%, var(--md-sys-color-surface-container-low) 100%);
+  border-radius: 20px;
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  border: 1px solid rgba(26, 115, 232, 0.16);
+}
+.dash-hero-content {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Mobile Dashboard Shortcuts Pills */
+.dash-quick-shortcuts {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 2px 2px 8px 2px;
+  margin-bottom: 16px;
+  scrollbar-width: none;
+}
+.dash-quick-shortcuts::-webkit-scrollbar {
+  display: none;
+}
+.quick-shortcut-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background-color: var(--md-sys-color-surface-container-lowest);
+  border: 1px solid var(--md-sys-color-surface-variant);
+  border-radius: 24px;
+  color: var(--md-sys-color-on-surface);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  flex-shrink: 0;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  transition: transform 150ms ease, background-color 150ms ease, box-shadow 150ms ease;
+}
+.quick-shortcut-pill:active {
+  transform: scale(0.96);
+  background-color: var(--md-sys-color-surface-container-high);
+}
+.quick-shortcut-pill .material-symbols-outlined {
+  font-size: 20px;
+}
+
 .stat-card {
   background-color: var(--md-sys-color-surface-container-low);
-  border-radius: 16px;
+  border-radius: 18px;
   padding: 16px 20px;
   display: flex;
   align-items: center;
@@ -1031,7 +1088,7 @@ a {
 .stat-icon-wrapper {
   width: 48px;
   height: 48px;
-  border-radius: 12px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2389,6 +2446,7 @@ a {
   .stats-carousel-wrapper {
     overflow-x: hidden !important;
     width: 100% !important;
+    margin-bottom: 16px !important;
   }
   .stats-grid {
     display: grid !important;
@@ -2401,6 +2459,28 @@ a {
     width: 100% !important;
     min-width: 0 !important;
     box-sizing: border-box !important;
+    padding: 14px 14px !important;
+    border-radius: 18px !important;
+    gap: 12px !important;
+  }
+  .stat-icon-wrapper {
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 12px !important;
+    flex-shrink: 0;
+  }
+  .stat-icon-wrapper span {
+    font-size: 20px !important;
+  }
+  .stat-details .label-medium {
+    font-size: 11px !important;
+    letter-spacing: 0.2px;
+  }
+  .stat-details .display-small {
+    font-size: 18px !important;
+    line-height: 22px !important;
+    font-weight: 700 !important;
+    margin-top: 2px;
   }
   .dashboard-sections {
     display: grid !important;
@@ -2411,6 +2491,22 @@ a {
   .dashboard-list-card {
     height: auto !important;
     min-height: 380px !important;
+    border-radius: 20px !important;
+    padding: 16px !important;
+    background-color: var(--md-sys-color-surface-container-lowest);
+    border: 1px solid var(--md-sys-color-surface-variant);
+  }
+  .quick-student-item {
+    padding: 12px 10px !important;
+    margin-bottom: 6px !important;
+    border-radius: 14px !important;
+    background-color: var(--md-sys-color-surface-container-low);
+    border: 1px solid transparent;
+    transition: all 180ms ease;
+  }
+  .quick-student-item:active {
+    transform: scale(0.98);
+    background-color: var(--md-sys-color-surface-container-high);
   }
 
   /* Students Split View Mobile sliding mechanism */

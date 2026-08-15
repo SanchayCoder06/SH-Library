@@ -311,7 +311,40 @@
         <!-- ================= VIEW: DASHBOARD ================= -->
         <section id="view-dashboard" class="app-view active-view">
           
-          <!-- Stats Panel: Grid on Desktop, Carousel on Mobile -->
+          <!-- Mobile Welcome Greeting Header -->
+          <div class="dash-hero-card mobile-only elevation-1">
+            <div class="dash-hero-content">
+              <span class="label-medium text-primary font-bold" id="dash-greeting-text">Welcome back 👋</span>
+              <h2 class="headline-small font-bold" style="margin: 2px 0;">SH Library Management</h2>
+              <span class="body-small text-secondary">82 Study Cabins • Active Session 2026</span>
+            </div>
+            <button class="btn btn-primary ripple add-student-trigger" style="border-radius: 24px; gap: 6px; padding: 8px 16px; flex-shrink: 0;">
+              <span class="material-symbols-outlined" style="font-size: 20px;">person_add</span>
+              <span class="label-medium">Add</span>
+            </button>
+          </div>
+
+          <!-- Mobile Quick Action Shortcuts -->
+          <div class="dash-quick-shortcuts mobile-only">
+            <button class="quick-shortcut-pill ripple add-student-trigger">
+              <span class="material-symbols-outlined" style="color: var(--md-sys-color-primary);">person_add</span>
+              <span class="label-medium">New Student</span>
+            </button>
+            <button class="quick-shortcut-pill ripple" id="dash-shortcut-fees">
+              <span class="material-symbols-outlined" style="color: #198754;">payments</span>
+              <span class="label-medium">Collect Fee</span>
+            </button>
+            <button class="quick-shortcut-pill ripple" id="dash-shortcut-students">
+              <span class="material-symbols-outlined" style="color: #6C5778;">group</span>
+              <span class="label-medium">Directory</span>
+            </button>
+            <button class="quick-shortcut-pill ripple" id="dash-shortcut-contact">
+              <span class="material-symbols-outlined" style="color: #E65100;">support_agent</span>
+              <span class="label-medium">Enquiry</span>
+            </button>
+          </div>
+
+          <!-- Stats Panel: Grid on Desktop, 2x2 on Mobile -->
           <div class="stats-carousel-wrapper">
             <div class="stats-grid" id="stats-grid">
               
