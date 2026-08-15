@@ -2144,31 +2144,56 @@ a {
   position: fixed;
   bottom: 24px;
   left: 50%;
-  transform: translate(-50%, 80px);
-  background-color: var(--md-sys-color-on-surface);
-  color: var(--md-sys-color-surface);
+  transform: translate(-50%, 40px);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  background-color: var(--md-sys-color-inverse-surface, #313033);
+  color: var(--md-sys-color-inverse-on-surface, #F4EFF4);
   padding: 14px 24px;
-  border-radius: 4px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
   z-index: 1000;
-  transition: transform 300ms var(--easing-standard);
+  transition: transform 300ms var(--easing-standard), opacity 300ms ease, visibility 300ms ease;
   width: max-content;
   max-width: 90vw;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
 }
 .snackbar.active {
   transform: translate(-50%, 0);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 .snackbar-text {
-  color: var(--md-sys-color-surface);
+  color: inherit;
 }
 .snackbar-action-btn {
   background: transparent;
   border: none;
   color: var(--md-sys-color-primary);
   cursor: pointer;
+  font-weight: 600;
+}
+
+/* Global Bottom Navigation Reset (Always hidden on desktop/tablet) */
+.bottom-nav {
+  display: none !important;
+}
+.bottom-nav-item {
+  background: transparent;
+  border: none;
+  outline: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  color: var(--md-sys-color-on-surface-variant);
+  padding: 0;
 }
 
 /* Global Floating Action Button (FAB) */
