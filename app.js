@@ -2072,7 +2072,8 @@ function openBatchLedgerDialog(month) {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td><span class="label-large font-bold">${student.seat || '--'}</span></td>
-      <td><span class="body-large">${student.name}</span></td>
+      <td><span class="body-large font-bold">${student.name}</span></td>
+      <td><span class="chip chip-neutral label-medium" style="background-color: var(--md-sys-color-surface-container-high);">${student.dueDay || '5'}th of month</span></td>
       <td><span class="chip ${statusClass} label-medium">${statusText}</span></td>
       <td>
         <button class="btn btn-tonal btn-small ripple record-ledger-btn" title="Record Payment">

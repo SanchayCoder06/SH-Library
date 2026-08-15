@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sh-library-cache-v33';
+const CACHE_NAME = 'sh-library-cache-v34';
 const ASSETS = [
   './',
   './index.html',
