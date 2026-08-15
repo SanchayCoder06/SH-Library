@@ -358,12 +358,12 @@
                 </div>
               </div>
 
-              <div class="stat-card elevation-1 ripple">
+              <div class="stat-card elevation-1 ripple cursor-pointer" id="stat-card-seats" title="Click to view Seats Availability Chart">
                 <div class="stat-icon-wrapper tonal-tertiary">
                   <span class="material-symbols-outlined">event_seat</span>
                 </div>
                 <div class="stat-details">
-                  <span class="label-medium text-secondary">Seats Occupied</span>
+                  <span class="label-medium text-secondary">Seats Occupied 🔍</span>
                   <h3 class="display-small" id="stat-seats-occupied">0 <span class="body-medium text-secondary" id="stat-occupancy-percent">(0%)</span></h3>
                 </div>
               </div>
@@ -1204,6 +1204,61 @@
         <button id="batch-payment-save-btn" class="btn btn-primary ripple">
           <span class="label-large">Close</span>
         </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ================= MODAL: SEATS AVAILABILITY CHART ================= -->
+  <div id="seats-chart-modal" class="modal-backdrop hidden">
+    <div class="dialog-card elevation-3" style="max-width: 680px; width: 95vw; max-height: 92vh; display: flex; flex-direction: column; border-radius: 24px;">
+      <div class="dialog-header" style="padding: 20px 24px 12px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--md-sys-color-surface-variant);">
+        <div>
+          <h3 class="title-large font-bold" style="margin: 0;">Seats Availability Chart</h3>
+          <span class="body-small text-secondary" id="seats-chart-subtitle">82 Total Study Cabins</span>
+        </div>
+        <button id="close-seats-chart-btn" class="icon-button ripple" aria-label="Close seats chart">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <!-- Live Stats & Key -->
+      <div class="dialog-content" style="padding: 16px 20px; overflow-y: auto; flex-grow: 1;">
+        
+        <!-- Summary Chips & Key -->
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; align-items: center;">
+          <div class="chip chip-success" style="font-weight: 600; padding: 6px 12px; font-size: 13px;">
+            <span id="chart-available-count">82</span> Available
+          </div>
+          <div class="chip chip-neutral" style="font-weight: 600; padding: 6px 12px; font-size: 13px; background-color: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container);">
+            <span id="chart-occupied-count">0</span> Occupied
+          </div>
+          <div class="chip" style="font-weight: 600; padding: 6px 12px; font-size: 13px; background-color: var(--md-sys-color-surface-container-high);">
+            82 Total Seats
+          </div>
+        </div>
+
+        <!-- Visual 82 Seats Grid -->
+        <div class="seat-chart-grid-container" style="background-color: var(--md-sys-color-surface-container-low); border-radius: 16px; padding: 14px;">
+          <div class="seats-chart-grid" id="seats-chart-grid">
+            <!-- Injected by JS -->
+          </div>
+        </div>
+
+        <!-- Selected Seat Detail Info Card (shows on clicking a seat) -->
+        <div id="chart-seat-detail-card" class="tonal-surface hidden" style="margin-top: 14px; padding: 14px 16px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--md-sys-color-surface-variant); gap: 12px; flex-wrap: wrap;">
+          <div id="chart-seat-info-left" style="display: flex; align-items: center; gap: 12px;">
+            <!-- Injected by JS -->
+          </div>
+          <div id="chart-seat-action-right">
+            <!-- Injected by JS -->
+          </div>
+        </div>
+
+      </div>
+
+      <div class="dialog-actions" style="padding: 12px 24px; border-top: 1px solid var(--md-sys-color-surface-variant); display: flex; justify-content: flex-end;">
+        <button type="button" class="btn btn-outlined ripple" id="close-seats-chart-btn-bottom">Close</button>
       </div>
     </div>
   </div>

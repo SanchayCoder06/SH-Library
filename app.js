@@ -923,6 +923,23 @@ function setupNavigators() {
   const scContact = document.getElementById('dash-shortcut-contact');
   if (scContact) scContact.addEventListener('click', () => triggerNavigation('contact'));
 
+  // Seats Occupied card -> Open Seats Availability Chart
+  const seatsCard = document.getElementById('stat-card-seats');
+  if (seatsCard) seatsCard.addEventListener('click', openSeatsAvailabilityChart);
+
+  // Close Seats Chart Modal listeners
+  const closeSeatsBtn = document.getElementById('close-seats-chart-btn');
+  if (closeSeatsBtn) closeSeatsBtn.addEventListener('click', () => {
+    const m = document.getElementById('seats-chart-modal');
+    if (m) m.classList.add('hidden');
+  });
+
+  const closeSeatsBtnBottom = document.getElementById('close-seats-chart-btn-bottom');
+  if (closeSeatsBtnBottom) closeSeatsBtnBottom.addEventListener('click', () => {
+    const m = document.getElementById('seats-chart-modal');
+    if (m) m.classList.add('hidden');
+  });
+
   // Notifications dropdown toggling and mark as read
   const notifBtn = document.getElementById('notifications-btn');
   const notifMenu = document.getElementById('notifications-dropdown');
@@ -1547,6 +1564,127 @@ function renderSeatMapGrid() {
 
     grid.appendChild(btn);
   }
+}
+
+// ==========================================================================
+// 8.5 INTERACTIVE SEATS AVAILABILITY CHART MODAL
+// ==========================================================================
+function openSeatsAvailabilityChart() {
+  const modal = document.getElementById('seats-chart-modal');
+  const grid = document.getElementById('seats-chart-grid');
+  const detailBox = document.getElementById('chart-seat-detail-card');
+  const infoLeft = document.getElementById('chart-seat-info-left');
+  const actionRight = document.getElementById('chart-seat-action-right');
+
+  if (!modal || !grid) return;
+
+  grid.innerHTML = '';
+  if (detailBox) detailBox.classList.add('hidden');
+
+  const students = DB.getStudents();
+  
+  // Find mapping of seat number -> student
+  const seatMap = {};
+  students.forEach(s => {
+    if (s.seat) {
+      const cleanSeat = String(s.seat).replace(/seat\s*/i, '').trim();
+      seatMap[cleanSeat] = s;
+      seatMap[String(s.seat).trim()] = s;
+    }
+  });
+
+  const occupiedCount = students.filter(s => s.seat).length;
+  const availableCount = Math.max(0, TOTAL_SEATS - occupiedCount);
+
+  const occElem = document.getElementById('chart-occupied-count');
+  const availElem = document.getElementById('chart-available-count');
+  if (occElem) occElem.innerText = occupiedCount;
+  if (availElem) availElem.innerText = availableCount;
+
+  for (let i = 1; i <= TOTAL_SEATS; i++) {
+    const seatNum = String(i);
+    const student = seatMap[seatNum] || seatMap[`Seat ${seatNum}`];
+    
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = `seat-chart-btn ripple ${student ? 'occupied' : 'available'}`;
+    btn.innerHTML = `
+      <span style="font-size: 13px; font-weight: 700;">${seatNum}</span>
+      <span style="font-size: 9px; opacity: 0.85;">${student ? 'Busy' : 'Free'}</span>
+    `;
+
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.seat-chart-btn').forEach(b => b.classList.remove('active-selected'));
+      btn.classList.add('active-selected');
+      if (detailBox) detailBox.classList.remove('hidden');
+
+      if (student) {
+        const imgMarkup = getStudentAvatarMarkup(student, 'avatar-small');
+        if (infoLeft) {
+          infoLeft.innerHTML = `
+            ${imgMarkup}
+            <div>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span class="title-medium font-bold">${student.name}</span>
+                <span class="chip chip-neutral label-small" style="padding: 2px 8px; font-size: 11px;">Seat ${seatNum}</span>
+              </div>
+              <span class="body-small text-secondary">${student.phone} • Due: ${student.dueDay || '5'}th</span>
+            </div>
+          `;
+        }
+        if (actionRight) {
+          actionRight.innerHTML = `
+            <button type="button" class="btn btn-primary btn-small ripple" id="chart-view-profile-btn" style="border-radius: 20px;">
+              <span class="label-medium">View Profile</span>
+            </button>
+          `;
+        }
+        const viewBtn = document.getElementById('chart-view-profile-btn');
+        if (viewBtn) {
+          viewBtn.addEventListener('click', () => {
+            modal.classList.add('hidden');
+            triggerNavigation('students');
+            selectStudent(student.id);
+          });
+        }
+      } else {
+        if (infoLeft) {
+          infoLeft.innerHTML = `
+            <div style="width: 36px; height: 36px; border-radius: 50%; background-color: rgba(25, 135, 84, 0.15); color: #198754; display: flex; align-items: center; justify-content: center;">
+              <span class="material-symbols-outlined" style="font-size: 20px;">check_circle</span>
+            </div>
+            <div>
+              <span class="title-medium font-bold" style="color: #198754;">Seat ${seatNum} is Available</span>
+              <span class="body-small text-secondary">Ready for student allotment</span>
+            </div>
+          `;
+        }
+        if (actionRight) {
+          actionRight.innerHTML = `
+            <button type="button" class="btn btn-primary btn-small ripple" id="chart-assign-student-btn" style="border-radius: 20px;">
+              <span class="label-medium">Assign Seat</span>
+            </button>
+          `;
+        }
+        const assignBtn = document.getElementById('chart-assign-student-btn');
+        if (assignBtn) {
+          assignBtn.addEventListener('click', () => {
+            modal.classList.add('hidden');
+            openStudentModal();
+            selectedSeat = seatNum;
+            const seatFeedback = document.getElementById('selected-seat-feedback');
+            const seatInput = document.getElementById('student-allotted-seat');
+            if (seatFeedback) seatFeedback.innerText = `Seat ${seatNum}`;
+            if (seatInput) seatInput.value = seatNum;
+          });
+        }
+      }
+    });
+
+    grid.appendChild(btn);
+  }
+
+  modal.classList.remove('hidden');
 }
 
 function fillVerificationStep() {
