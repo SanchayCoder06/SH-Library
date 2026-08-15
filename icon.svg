@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="512" height="512">
+  <defs>
+    <linearGradient id="blueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4285F4" />
+      <stop offset="100%" stop-color="#1A73E8" />
+    </linearGradient>
+  </defs>
+  <!-- Rounded container background -->
+  <rect width="24" height="24" rx="5" fill="#F8F9FC"/>
+  <!-- Decorative Background Shape -->
+  <circle cx="12" cy="12" r="10" fill="#D7E3FF" opacity="0.4"/>
+  <!-- Bookmark Outer Shape -->
+  <path d="M17 4H7C5.9 4 5.01 4.9 5.01 6L5 20L12 17L19 20V6C19 4.9 18.1 4 17 4Z" fill="url(#blueGrad)"/>
+  <!-- Inner Details representing a book/ribbon fold -->
+  <path d="M12 4H7C5.9 4 5.01 4.9 5.01 6L5 20L12 17V4Z" fill="#1557B0" opacity="0.15"/>
+  <path d="M9 6H15V14.5L12 13.2L9 14.5V6Z" fill="#FFFFFF" opacity="0.9"/>
+  <!-- Mini star accent inside the bookmark (representing "Self Study Centre" excellence) -->
+  <path d="M12 7.8L12.55 8.92L13.78 9.1L12.89 9.97L13.1 11.2L12 10.62L10.9 11.2L11.11 9.97L10.22 9.1L11.45 8.92L12 7.8Z" fill="#1A73E8"/>
+</svg>

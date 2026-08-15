@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SH Library & Self Study Centre</title>
+  
+  <!-- PWA Support -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1A73E8">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  
+  <!-- Google Fonts & Material Symbols -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
+  
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="app.css">
+  
+  <!-- Google Identity Services -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+
+  <!-- ================= LOADING SCREEN ================= -->
+  <div id="loading-screen" class="loading-screen">
+    <div class="logo-lockup animate-pulse">
+      <img src="icon.svg" alt="SH Library Logo" class="logo-icon">
+      <div class="wordmark-container">
+        <h1 class="logo-wordmark">S H LIBRARY</h1>
+        <p class="logo-subtitle">& SELF STUDY CENTRE</p>
+      </div>
+    </div>
+    <div class="loading-progress-bar">
+      <div class="loading-progress-indicator"></div>
+    </div>
+  </div>
+
+  <!-- ================= AUTHENTICATION VIEW ================= -->
+  <div id="auth-screen" class="auth-screen hidden">
+    <div class="auth-container">
+      <div class="auth-card elevation-2">
+        <div class="auth-header">
+          <img src="icon.svg" alt="SH Library Logo" class="auth-logo">
+          <h2 class="headline-medium text-center">SH Library Admin</h2>
+          <p class="body-medium text-center text-secondary">Sign in to manage students, seats, and fees</p>
+        </div>
+
+        <!-- Notification banner for guest status -->
+        <div id="auth-banner" class="auth-banner hidden">
+          <span class="material-symbols-outlined icon-small">info</span>
+          <span class="label-medium">Running in Guest Mode. Data will be saved in your browser session.</span>
+        </div>
+
+        <form id="email-login-form" class="auth-form" novalidate>
+          <div class="text-field-container">
+            <input type="email" id="login-email" required placeholder=" ">
+            <label for="login-email">Email Address</label>
+            <span class="error-text" id="email-error">Enter a valid email address</span>
+          </div>
+
+          <div class="text-field-container">
+            <input type="password" id="login-password" required placeholder=" ">
+            <label for="login-password">Password</label>
+            <span class="error-text" id="password-error">Password must be at least 6 characters</span>
+          </div>
+
+          <button type="submit" class="btn btn-primary ripple full-width">
+            <span class="label-large">Sign In with Password</span>
+          </button>
+        </form>
+
+        <div class="auth-divider">
+          <span class="divider-line"></span>
+          <span class="divider-text label-medium">or</span>
+          <span class="divider-line"></span>
+        </div>
+
+        <div class="auth-buttons">
+          <div class="google-auth-wrapper" id="google-auth-wrapper" style="width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+            <button id="google-login-btn" class="btn btn-outlined ripple full-width">
+              <svg class="google-logo-svg" viewBox="0 0 24 24" width="18" height="18">
+                <path fill="#EA4335" d="M12 5.04c1.66 0 3.2.57 4.38 1.69l3.27-3.27C17.67 1.48 14.98 1 12 1 7.35 1 3.39 3.65 1.5 7.5l3.86 3C6.27 7.7 8.91 5.04 12 5.04z"/>
+                <path fill="#4285F4" d="M23.49 12.27c0-.81-.07-1.59-.2-2.36H12v4.51h6.46c-.29 1.48-1.14 2.73-2.4 3.58l3.76 2.91c2.2-2.03 3.67-5.02 3.67-8.64z"/>
+                <path fill="#FBBC05" d="M5.36 10.5c-.24-.72-.37-1.49-.37-2.3c0-.81.13-1.58.37-2.3L1.5 2.9C.54 4.82 0 6.98 0 9.2c0 2.22.54 4.38 1.5 6.3l3.86-3z"/>
+                <path fill="#34A853" d="M12 23c3.24 0 5.97-1.07 7.96-2.91l-3.76-2.91c-1.1.74-2.52 1.18-4.2 1.18-3.09 0-5.73-2.66-6.64-5.46L1.5 15.9C3.39 19.75 7.35 23 12 23z"/>
+              </svg>
+              <span class="label-large">Sign in with Google</span>
+            </button>
+            <div id="real-google-signin-btn" class="hidden" style="width: 100%; display: flex; justify-content: center;"></div>
+          </div>
+          
+          <button id="guest-login-btn" class="btn btn-tonal ripple full-width">
+            <span class="material-symbols-outlined btn-icon">person</span>
+            <span class="label-large">Explore as Guest (Offline)</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= FIREBASE SETUP DIALOG ================= -->
+  <div id="firebase-setup-dialog" class="dialog-overlay hidden">
+    <div class="dialog-card elevation-3 max-width-400">
+      <div class="dialog-header">
+        <h3 class="title-large">Firebase Cloud Sync Setup</h3>
+        <button id="close-firebase-setup-btn" class="icon-button ripple" aria-label="Close dialog">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="dialog-content">
+        <p class="body-medium text-secondary" style="margin-bottom: 16px;">
+          To enable real Google Sign-In and prevent data loss, paste your Firebase Web App Config JSON below. You can find this in your Firebase Console under Project Settings > General > Your Apps.
+        </p>
+        <div class="text-field-container" style="height: auto;">
+          <textarea id="firebase-json-input" placeholder='{&#13;  "apiKey": "...",&#13;  "authDomain": "...",&#13;  "projectId": "...",&#13;  "storageBucket": "...",&#13;  "messagingSenderId": "...",&#13;  "appId": "..."&#13;}' rows="8" style="width: 100%; font-family: monospace; font-size: 13px; padding: 12px; border-radius: 8px; border: 1px solid var(--md-sys-color-outline-variant); background: transparent; color: var(--md-sys-color-on-surface); resize: vertical; box-sizing: border-box;"></textarea>
+          <span class="error-text" id="firebase-json-error" style="display: none; color: var(--md-sys-color-error); font-size: 12px; margin-top: 4px;">Invalid JSON format. Please paste a valid Firebase configuration object.</span>
+        </div>
+      </div>
+      <div class="dialog-actions">
+        <button id="cancel-firebase-setup-btn" class="btn btn-text ripple">Cancel</button>
+        <button id="save-firebase-setup-btn" class="btn btn-primary ripple">Save & Connect</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MOCK GOOGLE ACCOUNT CHOOSER DIALOG ================= -->
+  <div id="google-chooser-dialog" class="dialog-overlay hidden">
+    <div class="dialog-card elevation-3 max-width-360">
+      <div class="dialog-header">
+        <svg class="google-logo-svg-large" viewBox="0 0 24 24" width="32" height="32">
+          <path fill="#4285F4" d="M23.49 12.27c0-.81-.07-1.59-.2-2.36H12v4.51h6.46c-.29 1.48-1.14 2.73-2.4 3.58l3.76 2.91c2.2-2.03 3.67-5.02 3.67-8.64z"/>
+          <path fill="#34A853" d="M12 23c3.24 0 5.97-1.07 7.96-2.91l-3.76-2.91c-1.1.74-2.52 1.18-4.2 1.18-3.09 0-5.73-2.66-6.64-5.46L1.5 15.9C3.39 19.75 7.35 23 12 23z"/>
+          <path fill="#EA4335" d="M12 5.04c1.66 0 3.2.57 4.38 1.69l3.27-3.27C17.67 1.48 14.98 1 12 1 7.35 1 3.39 3.65 1.5 7.5l3.86 3C6.27 7.7 8.91 5.04 12 5.04z"/>
+          <path fill="#FBBC05" d="M5.36 10.5c-.24-.72-.37-1.49-.37-2.3c0-.81.13-1.58.37-2.3L1.5 2.9C.54 4.82 0 6.98 0 9.2c0 2.22.54 4.38 1.5 6.3l3.86-3z"/>
+        </svg>
+        <h3 class="title-large text-center">Choose an account</h3>
+        <p class="body-medium text-center text-secondary">to continue to SH Library</p>
+      </div>
+      <div class="dialog-content no-padding">
+        <ul class="google-account-list">
+          <li class="google-account-item ripple" data-email="sanchit.sharma@gmail.com" data-name="Sanchit Sharma" data-avatar="A">
+            <div class="avatar avatar-primary">S</div>
+            <div class="account-info">
+              <span class="title-medium">Sanchit Sharma</span>
+              <span class="body-small text-secondary">sanchit.sharma@gmail.com</span>
+            </div>
+          </li>
+          <li class="google-account-item ripple" data-email="admin.shlibrary@gmail.com" data-name="SH Library Admin" data-avatar="L">
+            <div class="avatar avatar-tertiary">A</div>
+            <div class="account-info">
+              <span class="title-medium">SH Library Admin</span>
+              <span class="body-small text-secondary">admin.shlibrary@gmail.com</span>
+            </div>
+          </li>
+          <li class="google-account-item ripple" data-email="guest.user@gmail.com" data-name="Guest Admin" data-avatar="G">
+            <div class="avatar avatar-neutral">G</div>
+            <div class="account-info">
+              <span class="title-medium">Guest Admin</span>
+              <span class="body-small text-secondary">guest.user@gmail.com</span>
+            </div>
+          </li>
+        </ul>
+      </div>
+      <div class="dialog-actions">
+        <button id="cancel-google-btn" class="btn btn-text ripple">
+          <span class="label-large">Cancel</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ================= APP CONTAINER ================= -->
+  <div id="app-container" class="app-container hidden">
+
+    <!-- Left Navigation Rail (Desktop & Tablet) -->
+    <nav class="nav-rail" id="nav-rail">
+      <div class="rail-header">
+        <button id="rail-toggle-btn" class="icon-button ripple" aria-label="Collapse Navigation">
+          <span class="material-symbols-outlined">menu</span>
+        </button>
+        <div class="rail-logo">
+          <img src="icon.svg" alt="SH Logo" class="logo-small">
+          <span class="logo-text title-medium">SH Library</span>
+        </div>
+      </div>
+      
+      <div class="rail-destinations">
+        <button class="rail-nav-item active ripple" data-view="dashboard">
+          <div class="nav-icon-wrapper">
+            <span class="material-symbols-outlined">dashboard</span>
+          </div>
+          <span class="label-medium nav-label">Home</span>
+        </button>
+        
+        <button class="rail-nav-item ripple" data-view="students">
+          <div class="nav-icon-wrapper">
+            <span class="material-symbols-outlined">group</span>
+          </div>
+          <span class="label-medium nav-label">Students</span>
+        </button>
+        
+        <button class="rail-nav-item ripple" data-view="fees">
+          <div class="nav-icon-wrapper">
+            <span class="material-symbols-outlined">payments</span>
+          </div>
+          <span class="label-medium nav-label">Fees</span>
+        </button>
+        
+        <button class="rail-nav-item ripple" data-view="contact">
+          <div class="nav-icon-wrapper">
+            <span class="material-symbols-outlined">map</span>
+          </div>
+          <span class="label-medium nav-label">Contact</span>
+        </button>
+        
+        <button class="rail-nav-item ripple" data-view="profile">
+          <div class="nav-icon-wrapper">
+            <span class="material-symbols-outlined">account_circle</span>
+          </div>
+          <span class="label-medium nav-label">Profile</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      
+      <!-- Top Bar -->
+      <header class="top-app-bar" id="top-app-bar">
+        <div class="top-bar-left">
+          <!-- Mobile Menu Drawer Toggle -->
+          <button id="mobile-menu-btn" class="icon-button ripple mobile-only" aria-label="Open menu">
+            <span class="material-symbols-outlined">menu</span>
+          </button>
+          <div class="logo-lockup-small">
+            <img src="icon.svg" alt="Logo" class="logo-tiny">
+            <span class="wordmark title-large">SH Library</span>
+          </div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="search-container" id="search-container">
+          <div class="search-box">
+            <span class="material-symbols-outlined search-icon">search</span>
+            <input type="text" id="global-search-input" placeholder="Search students, seats, phone..." aria-label="Search students">
+            <button id="clear-search-btn" class="icon-button ripple hidden" aria-label="Clear search">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="top-bar-right">
+          <!-- Dark Mode Toggle -->
+          <button id="theme-toggle-btn" class="icon-button ripple" aria-label="Toggle Theme">
+            <span class="material-symbols-outlined" id="theme-icon">dark_mode</span>
+          </button>
+
+          <!-- Notifications -->
+          <div class="notification-badge-container">
+            <button id="notifications-btn" class="icon-button ripple" aria-label="Notifications">
+              <span class="material-symbols-outlined">notifications</span>
+              <span class="badge hidden" id="notification-count">0</span>
+            </button>
+            <!-- Dropdown Notification Menu -->
+            <div id="notifications-dropdown" class="dropdown-menu elevation-2 hidden">
+              <div class="dropdown-header">
+                <span class="title-small">Notifications</span>
+              </div>
+              <ul class="dropdown-list" id="notification-list">
+                <li class="dropdown-empty-state">No new alerts</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Avatar / Profile Dropdown -->
+          <div class="avatar-dropdown-container">
+            <button id="profile-dropdown-btn" class="avatar-button ripple" aria-label="Admin Profile Settings">
+              <div class="avatar avatar-primary avatar-small" id="header-admin-avatar">A</div>
+            </button>
+            <div id="profile-dropdown" class="dropdown-menu elevation-2 hidden">
+              <div class="dropdown-profile-header">
+                <div class="avatar avatar-primary avatar-medium" id="dropdown-admin-avatar">A</div>
+                <div class="admin-meta">
+                  <span class="title-medium" id="dropdown-admin-name">Admin Name</span>
+                  <span class="body-small text-secondary" id="dropdown-admin-email">admin@shlibrary.com</span>
+                </div>
+              </div>
+              <div class="dropdown-divider"></div>
+              <button class="dropdown-item ripple" id="dropdown-settings-btn">
+                <span class="material-symbols-outlined">settings</span>
+                <span class="label-large">Account Settings</span>
+              </button>
+              <button class="dropdown-item ripple text-error" id="dropdown-logout-btn">
+                <span class="material-symbols-outlined">logout</span>
+                <span class="label-large">Sign Out</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- View Containers -->
+      <div class="view-content-wrapper">
+
+        <!-- ================= VIEW: DASHBOARD ================= -->
+        <section id="view-dashboard" class="app-view active-view">
+          
+          <!-- Stats Panel: Grid on Desktop, Carousel on Mobile -->
+          <div class="stats-carousel-wrapper">
+            <div class="stats-grid" id="stats-grid">
+              
+              <div class="stat-card elevation-1 ripple">
+                <div class="stat-icon-wrapper tonal-primary">
+                  <span class="material-symbols-outlined">group</span>
+                </div>
+                <div class="stat-details">
+                  <span class="label-medium text-secondary">Total Students</span>
+                  <h3 class="display-small" id="stat-total-students">0</h3>
+                </div>
+              </div>
+
+              <div class="stat-card elevation-1 ripple">
+                <div class="stat-icon-wrapper tonal-tertiary">
+                  <span class="material-symbols-outlined">event_seat</span>
+                </div>
+                <div class="stat-details">
+                  <span class="label-medium text-secondary">Seats Occupied</span>
+                  <h3 class="display-small" id="stat-seats-occupied">0 <span class="body-medium text-secondary" id="stat-occupancy-percent">(0%)</span></h3>
+                </div>
+              </div>
+
+              <div class="stat-card elevation-1 ripple">
+                <div class="stat-icon-wrapper tonal-success">
+                  <span class="material-symbols-outlined">currency_rupee</span>
+                </div>
+                <div class="stat-details">
+                  <span class="label-medium text-secondary">Collected (Month)</span>
+                  <h3 class="display-small" id="stat-fees-collected">₹0</h3>
+                </div>
+              </div>
+
+              <div class="stat-card elevation-1 ripple">
+                <div class="stat-icon-wrapper tonal-error">
+                  <span class="material-symbols-outlined">pending_actions</span>
+                </div>
+                <div class="stat-details">
+                  <span class="label-medium text-secondary">Dues Pending</span>
+                  <h3 class="display-small" id="stat-fees-due">₹0</h3>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="dashboard-sections">
+            <!-- Active/Recent Students Feed -->
+            <div class="dashboard-list-card elevation-1">
+              <div class="section-header">
+                <h2 class="title-large">Seat Status & Dues Summary</h2>
+                <div class="section-actions">
+                  <button class="btn btn-tonal ripple btn-small" id="dash-view-all-students-btn">
+                    <span class="label-medium">View All</span>
+                  </button>
+                </div>
+              </div>
+              
+              <div class="quick-feed-container scrollable-y">
+                <div class="shimmer-loader" id="dashboard-shimmer">
+                  <div class="shimmer-item"></div>
+                  <div class="shimmer-item"></div>
+                  <div class="shimmer-item"></div>
+                  <div class="shimmer-item"></div>
+                </div>
+                
+                <ul class="quick-student-list hidden" id="dashboard-student-list">
+                  <!-- JS injected list items -->
+                </ul>
+
+                <div class="empty-state hidden" id="dashboard-empty-state">
+                  <div class="empty-state-illust">
+                    <span class="material-symbols-outlined illust-icon">group_off</span>
+                  </div>
+                  <h3 class="title-medium">No Students Registered</h3>
+                  <p class="body-medium text-secondary">Get started by onboarding your first library member.</p>
+                  <button class="btn btn-primary ripple add-student-trigger">
+                    <span class="material-symbols-outlined btn-icon">add</span>
+                    <span class="label-large">Add Student</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Facilities Info Box & Announcement -->
+            <div class="dashboard-info-card elevation-1 tonal-surface">
+              <div class="info-hero">
+                <h3 class="title-large text-primary">SH Library & Self Study Centre</h3>
+                <p class="body-medium text-secondary">Study cabin booking, automated billing & active monitoring dashboard.</p>
+              </div>
+              <div class="facilities-preview-grid">
+                <div class="facility-preview-item">
+                  <span class="material-symbols-outlined text-primary">wifi</span>
+                  <span class="label-medium">High Speed Wi-Fi</span>
+                </div>
+                <div class="facility-preview-item">
+                  <span class="material-symbols-outlined text-primary">ac_unit</span>
+                  <span class="label-medium">Full AC</span>
+                </div>
+                <div class="facility-preview-item">
+                  <span class="material-symbols-outlined text-primary">power</span>
+                  <span class="label-medium">Power Socket on Desk</span>
+                </div>
+                <div class="facility-preview-item">
+                  <span class="material-symbols-outlined text-primary">check_circle</span>
+                  <span class="label-medium">No Holidays</span>
+                </div>
+              </div>
+              <div class="info-footer">
+                <span class="body-small text-secondary">Azamgarh Road, Jiyanpur, Uttar Pradesh</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= VIEW: STUDENTS (SPLIT VIEW) ================= -->
+        <section id="view-students" class="app-view">
+          <div class="split-view-container">
+            
+            <!-- Left Pane: List of students -->
+            <div class="split-pane-list" id="students-pane-list">
+              <div class="pane-header">
+                <div class="pane-search-bar">
+                  <span class="material-symbols-outlined">search</span>
+                  <input type="text" id="students-search-input" placeholder="Filter by name, seat, mobile...">
+                </div>
+                <button class="icon-button ripple" id="filter-btn" aria-label="Filter status">
+                  <span class="material-symbols-outlined">filter_list</span>
+                </button>
+
+                <!-- Quick filter chip selection container -->
+                <div id="filter-sheet" class="filter-popover hidden elevation-2">
+                  <div class="filter-popover-header">
+                    <span class="title-small">Filter Status</span>
+                  </div>
+                  <div class="filter-options">
+                    <label class="filter-chip"><input type="radio" name="student-filter" value="all" checked><span>All</span></label>
+                    <label class="filter-chip"><input type="radio" name="student-filter" value="paid"><span>Paid</span></label>
+                    <label class="filter-chip"><input type="radio" name="student-filter" value="due"><span>Due</span></label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Scrollable Feed -->
+              <div class="pane-list-items scrollable-y">
+                <div class="shimmer-loader" id="students-list-shimmer">
+                  <div class="shimmer-item"></div>
+                  <div class="shimmer-item"></div>
+                  <div class="shimmer-item"></div>
+                  <div class="shimmer-item"></div>
+                  <div class="shimmer-item"></div>
+                </div>
+                
+                <ul class="student-list-ul hidden" id="students-list-ul">
+                  <!-- Injected by JS -->
+                </ul>
+
+                <div class="empty-state hidden" id="students-empty-state">
+                  <div class="empty-state-illust">
+                    <span class="material-symbols-outlined illust-icon">search_off</span>
+                  </div>
+                  <h3 class="title-medium">No results found</h3>
+                  <p class="body-medium text-secondary">Try adjusting your filters or search terms.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Pane: Details of selected student -->
+            <div class="split-pane-details" id="students-pane-details">
+              
+              <!-- Empty state default screen -->
+              <div class="detail-empty-state" id="detail-empty-state">
+                <span class="material-symbols-outlined illust-icon-large text-secondary-container">group</span>
+                <h3 class="title-large text-secondary">Select a student</h3>
+                <p class="body-medium text-secondary">Select a student from the list to view their full registration details, fee calendar, and seat settings.</p>
+              </div>
+
+              <!-- Dynamic Detail Screen -->
+              <div class="detail-content-wrapper hidden" id="detail-content-wrapper">
+                <div class="detail-header">
+                  <!-- Mobile Back Button -->
+                  <button id="detail-back-btn" class="icon-button ripple mobile-only" aria-label="Back to List">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                  </button>
+                  <h3 class="title-large">Student Details</h3>
+                  <div class="detail-header-actions">
+                    <button class="btn btn-outlined ripple" id="edit-student-btn">
+                      <span class="material-symbols-outlined btn-icon">edit</span>
+                      <span class="label-large">Edit</span>
+                    </button>
+                    <button class="btn btn-text text-error ripple" id="delete-student-btn">
+                      <span class="material-symbols-outlined btn-icon">delete</span>
+                      <span class="label-large">Delete</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="detail-profile-hero">
+                  <div class="detail-avatar-container">
+                    <img id="detail-photo" class="detail-photo" src="" alt="Student Photo">
+                    <div id="detail-photo-placeholder" class="avatar avatar-primary avatar-large hidden">U</div>
+                  </div>
+                  <div class="detail-profile-meta">
+                    <h2 class="headline-medium" id="detail-name">Student Name</h2>
+                    <div class="detail-seat-badge">
+                      <span class="material-symbols-outlined">event_seat</span>
+                      <span class="label-large" id="detail-seat-number">Seat --</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="detail-grid">
+                  <!-- Details Card -->
+                  <div class="detail-section-card elevation-1">
+                    <h3 class="title-medium section-title">Registration Info</h3>
+                    
+                    <div class="info-list">
+                      <div class="info-item">
+                        <span class="material-symbols-outlined info-icon">call</span>
+                        <div class="info-texts">
+                          <span class="body-small text-secondary">Contact Number</span>
+                          <span class="body-large text-link" id="detail-contact">--</span>
+                        </div>
+                      </div>
+
+                      <div class="info-item">
+                        <span class="material-symbols-outlined info-icon">badge</span>
+                        <div class="info-texts">
+                          <span class="body-small text-secondary">Aadhar Number</span>
+                          <span class="body-large" id="detail-aadhar">--</span>
+                        </div>
+                      </div>
+
+                      <div class="info-item">
+                        <span class="material-symbols-outlined info-icon">home</span>
+                        <div class="info-texts">
+                          <span class="body-small text-secondary">Permanent Address</span>
+                          <span class="body-large" id="detail-address">--</span>
+                        </div>
+                      </div>
+
+                      <div class="info-item">
+                        <span class="material-symbols-outlined info-icon">calendar_month</span>
+                        <div class="info-texts">
+                          <span class="body-small text-secondary">Joining Date</span>
+                          <span class="body-large" id="detail-joining-date">--</span>
+                        </div>
+                      </div>
+
+                      <div class="info-item">
+                        <span class="material-symbols-outlined info-icon">store</span>
+                        <div class="info-texts">
+                          <span class="body-small text-secondary">Library Branch</span>
+                          <span class="body-large" id="detail-library-name">SH Library</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Quick Payment Overview & Grid -->
+                  <div class="detail-section-card elevation-1">
+                    <h3 class="title-medium section-title">Fee Ledger (Current Year)</h3>
+                    
+                    <div id="detail-fees-summary" class="detail-fees-summary">
+                      <div class="fees-summary-mini">
+                        <span class="label-medium text-secondary">Paid Months</span>
+                        <span class="title-large text-success" id="detail-paid-count">0/12</span>
+                      </div>
+                      <div class="fees-summary-mini">
+                        <span class="label-medium text-secondary">Pending Dues</span>
+                        <span class="title-large text-error" id="detail-due-count">₹0</span>
+                      </div>
+                    </div>
+
+                    <div class="ledger-mini-grid" id="detail-ledger-grid">
+                      <!-- Injected JS Month Tiles -->
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ================= VIEW: FEES CALENDAR ================= -->
+        <section id="view-fees" class="app-view">
+          <div class="fees-container">
+            
+            <!-- Summary Indicator Card with Count-Up animation -->
+            <div class="fees-summary-card elevation-1 tonal-primary">
+              <h2 class="title-medium">Annual Financial Ledger Summary</h2>
+              <div class="fees-summary-row">
+                <div class="summary-stat">
+                  <span class="label-medium opacity-8">Total Fees Collected</span>
+                  <h3 class="display-medium" id="fees-summary-collected">₹0</h3>
+                </div>
+                <div class="summary-stat">
+                  <span class="label-medium opacity-8">Total Dues Outstanding</span>
+                  <h3 class="display-medium" id="fees-summary-dues">₹0</h3>
+                </div>
+                <div class="summary-stat">
+                  <span class="label-medium opacity-8">Last Recorded Transaction</span>
+                  <p class="body-large" id="fees-summary-last-payment">None</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Main Fees Workspace -->
+            <div class="fees-workspace elevation-1">
+              
+              <!-- Year tab indicator selection -->
+              <div class="fees-year-tabs-container">
+                <div class="fees-year-tabs" id="fees-year-tabs">
+                  <button class="year-tab active ripple" data-year="2026">2026</button>
+                  <button class="year-tab ripple" data-year="2025">2025</button>
+                  <div class="tab-indicator" id="year-tab-indicator"></div>
+                </div>
+              </div>
+
+              <div class="fees-content-grid">
+                <!-- Large Month Grid layout -->
+                <div class="months-grid-panel">
+                  <h3 class="title-large section-headline">Payment Status Grid</h3>
+                  <p class="body-medium text-secondary">Click on a tile to register or update payments for all students in that month.</p>
+                  
+                  <div class="months-grid" id="months-grid">
+                    <!-- 12 Tonal Tiles injected dynamically: Jan - Dec -->
+                  </div>
+                </div>
+
+                <!-- Live fee transaction log side column -->
+                <div class="fees-log-panel">
+                  <h3 class="title-medium">Recent Transactions</h3>
+                  <div class="transaction-list-container scrollable-y">
+                    <ul class="transaction-list" id="transaction-list">
+                      <li class="empty-log-state body-medium text-secondary">No payments registered for selected year.</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ================= VIEW: CONTACT ================= -->
+        <section id="view-contact" class="app-view">
+          <div class="contact-grid">
+            
+            <!-- Left Panel: Contact information & facilities listing from Flyer -->
+            <div class="contact-card elevation-1">
+              <div class="contact-header-block tonal-primary">
+                <h2 class="headline-medium">S H LIBRARY</h2>
+                <h3 class="title-medium">& SELF STUDY CENTRE</h3>
+                <p class="body-medium opacity-8">Premium cabin facilities with separate, clean environments optimized for focus.</p>
+              </div>
+
+              <div class="contact-details-list">
+                <div class="contact-item">
+                  <span class="material-symbols-outlined text-primary">location_on</span>
+                  <div class="contact-texts">
+                    <span class="title-small">Address</span>
+                    <span class="body-medium">Molanapur Gorari, Nr. Sagri Tahsil, Azamgarh Road, Jiyanpur, Uttar Pradesh - 276138</span>
+                  </div>
+                </div>
+
+                <div class="contact-item">
+                  <span class="material-symbols-outlined text-primary">call</span>
+                  <div class="contact-texts">
+                    <span class="title-small">Phone Numbers</span>
+                    <span class="body-medium">
+                      <a href="tel:7275562204" class="click-action">+91 7275562204</a>, 
+                      <a href="tel:8429047716" class="click-action">+91 8429047716</a>
+                    </span>
+                  </div>
+                </div>
+
+                <div class="contact-item">
+                  <span class="material-symbols-outlined text-primary">mail</span>
+                  <div class="contact-texts">
+                    <span class="title-small">Email Contact</span>
+                    <span class="body-medium"><a href="mailto:info@shlibrary.com" class="click-action">info@shlibrary.com</a></span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Quick Communication Action Triggers -->
+              <div class="quick-call-actions">
+                <a href="tel:7275562204" class="btn btn-primary ripple">
+                  <span class="material-symbols-outlined btn-icon">call</span>
+                  <span class="label-large">Call Centre</span>
+                </a>
+                <a href="https://wa.me/917275562204" target="_blank" rel="noopener" class="btn btn-outlined ripple green-border">
+                  <!-- Custom WhatsApp icon SVG -->
+                  <svg class="btn-icon-svg" viewBox="0 0 24 24" width="18" height="18" fill="#25D366">
+                    <path d="M12.03 2c-5.52 0-10 4.48-10 10a9.96 9.96 0 0 0 1.25 4.87l-1.2 4.41c-.08.3.17.57.47.48l4.41-1.19A9.96 9.96 0 0 0 12.03 22c5.52 0 10-4.48 10-10s-4.48-10-10-10zm.09 17.54c-1.63 0-3.14-.49-4.42-1.34l-.32-.21-2.61.7 1.34-1.28c-.96-1.35-1.53-2.99-1.53-4.76 0-4.66 3.79-8.45 8.45-8.45s8.45 3.79 8.45 8.45-3.79 8.45-8.45 8.45z"/>
+                  </svg>
+                  <span class="label-large">WhatsApp Chat</span>
+                </a>
+              </div>
+
+              <!-- Premium Flyer Details List -->
+              <div class="flyer-facilities-block">
+                <h3 class="title-medium divider-header">Study Centre Facilities</h3>
+                <ul class="facilities-bullet-list">
+                  <li><span class="bullet-star">★</span> Peaceful Environment For Study</li>
+                  <li><span class="bullet-star">★</span> Big Separate Cabin With LED lighting</li>
+                  <li><span class="bullet-star">★</span> Full Air Conditioning & Comfortable Chairs</li>
+                  <li><span class="bullet-star">★</span> Dedicated Power Socket On Each Desk</li>
+                  <li><span class="bullet-star">★</span> High Speed Wi-Fi Internet Access</li>
+                  <li><span class="bullet-star">★</span> Pure RO Drinking Water Facility</li>
+                  <li><span class="bullet-star">★</span> CCTV Camera Monitoring For Security</li>
+                  <li><span class="bullet-star">★</span> National Level Newspaper Availability</li>
+                  <li><span class="bullet-star">★</span> Separate Washrooms For Girls & Boys</li>
+                  <li><span class="bullet-star">★</span> 24/7 Battery & Inverter Power Backup</li>
+                  <li><span class="bullet-star">★</span> No Holidays — Open 365 Days</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Right Panel: Facilities Banner and Query form -->
+            <div class="contact-card elevation-1">
+              <h2 class="title-large pane-heading">SH Library Facilities & Overview</h2>
+              
+              <!-- Facilities Banner Image -->
+              <div class="facilities-banner-wrapper" style="width: 100%; border-radius: 12px; overflow: hidden; margin-bottom: 20px; box-shadow: var(--elevation-1);">
+                <img src="f1.png" alt="SH Library & Self Study Centre Facilities" style="width: 100%; height: auto; display: block; border-radius: 12px; object-fit: contain;">
+              </div>
+
+              <!-- Outlined floating label feedback form -->
+              <div class="query-form-block">
+                <h3 class="title-medium form-heading">Send Enquiry / Feedback</h3>
+                <form id="contact-enquiry-form" class="enquiry-form">
+                  <div class="text-field-container">
+                    <input type="text" id="enquiry-name" required placeholder=" ">
+                    <label for="enquiry-name">Your Full Name</label>
+                  </div>
+                  
+                  <div class="text-field-container">
+                    <input type="tel" id="enquiry-phone" required placeholder=" ">
+                    <label for="enquiry-phone">Contact Number</label>
+                  </div>
+
+                  <div class="text-field-container">
+                    <textarea id="enquiry-message" required placeholder=" " rows="3"></textarea>
+                    <label for="enquiry-message">Enquiry Message</label>
+                  </div>
+
+                  <button type="submit" class="btn btn-primary ripple">
+                    <span class="material-symbols-outlined btn-icon">send</span>
+                    <span class="label-large">Submit Query</span>
+                  </button>
+                </form>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ================= VIEW: ADMIN PROFILE ================= -->
+        <section id="view-profile" class="app-view">
+          <div class="profile-container max-width-600">
+            
+            <div class="profile-header-card elevation-1">
+              <div class="profile-avatar-wrapper">
+                <div class="avatar avatar-primary avatar-xlarge" id="profile-admin-avatar">A</div>
+              </div>
+              <h2 class="headline-medium text-center" id="profile-admin-name">Admin</h2>
+              <p class="body-medium text-secondary text-center" id="profile-admin-email">admin@shlibrary.com</p>
+            </div>
+
+            <!-- Profile Info Overview -->
+            <div class="profile-settings-list elevation-1">
+              <h3 class="title-medium section-header-text">Account Information</h3>
+              <div class="profile-info-list" style="display: flex; flex-direction: column; gap: 14px; margin-top: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--md-sys-color-outline-variant);">
+                  <span class="body-medium text-secondary">Administrator</span>
+                  <span class="title-medium" id="profile-display-name">Admin</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--md-sys-color-outline-variant);">
+                  <span class="body-medium text-secondary">Email</span>
+                  <span class="title-medium" id="profile-display-email">admin@shlibrary.com</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0;">
+                  <span class="body-medium text-secondary">Sign-In Method</span>
+                  <span class="chip chip-success label-medium" id="profile-display-role">Google Account</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Hidden Settings Form elements for data sync compatibility -->
+            <form id="admin-details-form" class="hidden">
+              <input type="text" id="settings-name">
+              <input type="email" id="settings-email">
+            </form>
+            <div id="firebase-config-panel" class="hidden">
+              <form id="firebase-config-form">
+                <textarea id="settings-firebase-json"></textarea>
+                <button type="button" id="clear-firebase-config-btn"></button>
+                <span id="settings-firebase-error"></span>
+              </form>
+            </div>
+
+            <div class="profile-logout-panel">
+              <button class="btn btn-tonal text-error ripple full-width" id="profile-logout-btn">
+                <span class="material-symbols-outlined btn-icon">logout</span>
+                <span class="label-large">Sign Out</span>
+              </button>
+            </div>
+
+          </div>
+        </section>
+
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+    <!-- Mobile Bottom Navigation Bar -->
+    <nav class="bottom-nav mobile-only" id="bottom-nav">
+      <button class="bottom-nav-item active ripple" data-view="dashboard">
+        <div class="bottom-nav-icon-container">
+          <div class="pill-active-indicator"></div>
+          <span class="material-symbols-outlined">dashboard</span>
+        </div>
+        <span class="label-medium bottom-nav-label">Home</span>
+      </button>
+
+      <button class="bottom-nav-item ripple" data-view="students">
+        <div class="bottom-nav-icon-container">
+          <div class="pill-active-indicator"></div>
+          <span class="material-symbols-outlined">group</span>
+        </div>
+        <span class="label-medium bottom-nav-label">Students</span>
+      </button>
+
+      <button class="bottom-nav-item ripple" data-view="fees">
+        <div class="bottom-nav-icon-container">
+          <div class="pill-active-indicator"></div>
+          <span class="material-symbols-outlined">payments</span>
+        </div>
+        <span class="label-medium bottom-nav-label">Fees</span>
+      </button>
+
+      <button class="bottom-nav-item ripple" data-view="contact">
+        <div class="bottom-nav-icon-container">
+          <div class="pill-active-indicator"></div>
+          <span class="material-symbols-outlined">map</span>
+        </div>
+        <span class="label-medium bottom-nav-label">Contact</span>
+      </button>
+
+      <button class="bottom-nav-item ripple" data-view="profile">
+        <div class="bottom-nav-icon-container">
+          <div class="pill-active-indicator"></div>
+          <span class="material-symbols-outlined">account_circle</span>
+        </div>
+        <span class="label-medium bottom-nav-label">Profile</span>
+      </button>
+    </nav>
+
+    <!-- Mobile Extended Floating Action Button (FAB) -->
+    <button class="fab-extended ripple add-student-trigger" id="fab-add-student">
+      <span class="material-symbols-outlined">add</span>
+      <span class="fab-label label-large">Add Student</span>
+    </button>
+
+  </div>
+
+
+  <!-- ================= DIALOG / MODAL: ADD & EDIT STUDENT ================= -->
+  <div id="student-modal" class="dialog-overlay hidden">
+    <div class="dialog-card student-modal-card elevation-3">
+      <div class="dialog-header">
+        <h3 class="headline-small" id="student-modal-title">Onboard New Student</h3>
+        <button id="close-student-modal-btn" class="icon-button ripple" aria-label="Close dialog">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <!-- Linear progress bar for step indication -->
+      <div class="modal-stepper-progress">
+        <div class="linear-progress-indicator" id="stepper-progress-indicator" style="width: 33%"></div>
+      </div>
+
+      <!-- Left layout side stepper hierarchy (Desktop only) -->
+      <div class="modal-stepper-body">
+        <aside class="stepper-sidebar desktop-only">
+          <div class="step-indicator-item active" data-step="1">
+            <span class="step-num">1</span>
+            <span class="label-large step-title">Personal Details</span>
+          </div>
+          <div class="step-indicator-item" data-step="2">
+            <span class="step-num">2</span>
+            <span class="label-large step-title">Seat Allotment</span>
+          </div>
+          <div class="step-indicator-item" data-step="3">
+            <span class="step-num">3</span>
+            <span class="label-large step-title">Verification</span>
+          </div>
+        </aside>
+
+        <!-- Main Form steps container -->
+        <div class="stepper-main-container">
+          <form id="student-entry-form" novalidate autocomplete="off">
+            <!-- Step 1: Personal Details -->
+            <div class="stepper-step active" id="stepper-step-1">
+              <h4 class="title-large step-header">Enter Personal Details</h4>
+              
+              <!-- Avatar Photo Upload Container -->
+              <div class="photo-upload-container">
+                <div class="photo-upload-preview">
+                  <img id="form-photo-preview" src="" alt="Student Avatar" class="hidden">
+                  <span class="material-symbols-outlined" id="photo-upload-placeholder">person</span>
+                  <button type="button" class="avatar-edit-pencil ripple" id="trigger-photo-file-btn">
+                    <span class="material-symbols-outlined">edit</span>
+                  </button>
+                </div>
+                <input type="file" id="student-photo-file" accept="image/*" class="hidden">
+                <span class="label-medium text-secondary">Upload Profile Photo (Auto Compressed)</span>
+              </div>
+
+              <div class="text-field-container">
+                <input type="text" id="student-name" name="name" required placeholder=" ">
+                <label for="student-name">Full Name</label>
+                <span class="error-text">Student name is required</span>
+              </div>
+
+              <div class="text-field-container">
+                <input type="tel" id="student-phone" name="phone" required maxlength="10" placeholder=" ">
+                <label for="student-phone">Contact Number (10 digits)</label>
+                <span class="error-text">Enter a valid 10-digit phone number</span>
+              </div>
+
+              <div class="text-field-container">
+                <input type="text" id="student-aadhar" name="aadhar" required maxlength="12" placeholder=" ">
+                <label for="student-aadhar">Aadhar Card Number (12 digits)</label>
+                <span class="error-text">Enter a valid 12-digit Aadhar number</span>
+              </div>
+
+              <div class="text-field-container">
+                <input type="text" id="student-address" name="address" required placeholder=" ">
+                <label for="student-address">Full Address</label>
+                <span class="error-text">Address details are required</span>
+              </div>
+
+              <div class="text-field-container">
+                <input type="date" id="student-joining" name="joining" required placeholder=" ">
+                <label for="student-joining">Joining Date</label>
+                <span class="error-text">Select joining date</span>
+              </div>
+
+              <div class="text-field-container">
+                <input type="text" id="student-branch" name="branch" readonly value="SH Library" placeholder=" ">
+                <label for="student-branch">Library Name (Default)</label>
+              </div>
+            </div>
+
+            <!-- Step 2: Seat Allotment -->
+            <div class="stepper-step" id="stepper-step-2">
+              <h4 class="title-large step-header">Select Cabin Seat</h4>
+              <p class="body-medium text-secondary margin-bottom-16">Select an available study cabin seat from the visual layout map below.</p>
+              
+              <!-- Seat status indicator key list -->
+              <div class="seat-indicators-key">
+                <div class="key-item">
+                  <span class="seat-demo seat-demo-available"></span>
+                  <span class="label-medium">Available</span>
+                </div>
+                <div class="key-item">
+                  <span class="seat-demo seat-demo-occupied"></span>
+                  <span class="label-medium">Occupied</span>
+                </div>
+                <div class="key-item">
+                  <span class="seat-demo seat-demo-selected"></span>
+                  <span class="label-medium">Selected</span>
+                </div>
+              </div>
+
+              <div class="seat-allotment-workspace">
+                <!-- Selected Seat Feedback -->
+                <div class="selected-seat-banner tonal-primary">
+                  <span class="label-large">Allotted Seat ID: </span>
+                  <span class="title-large font-bold" id="selected-seat-feedback">None Selected</span>
+                  <!-- Hidden input to hold selected seat -->
+                  <input type="hidden" id="student-allotted-seat" name="seat" required>
+                </div>
+                
+                <!-- Scrollable visual grid map -->
+                <div class="seat-grid-container scrollable-x">
+                  <div class="seat-map-grid" id="seat-map-grid">
+                    <!-- 30 Seats Injected by JS: Rows A-E, Cols 1-6 -->
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 3: Verification & Save -->
+            <div class="stepper-step" id="stepper-step-3">
+              <h4 class="title-large step-header">Review Student Record</h4>
+              
+              <div class="review-record-card tonal-surface">
+                <div class="review-header">
+                  <div class="avatar avatar-primary avatar-medium" id="review-avatar-placeholder">U</div>
+                  <img id="review-photo-preview" src="" alt="Review Student Photo" class="review-photo-preview hidden">
+                  <div class="review-name-block">
+                    <h5 class="title-large" id="review-name">Student Name</h5>
+                    <span class="label-large text-primary" id="review-seat">Seat --</span>
+                  </div>
+                </div>
+                <div class="review-details-grid">
+                  <div class="review-detail-item">
+                    <span class="label-medium text-secondary">Phone Number</span>
+                    <span class="body-large" id="review-phone">--</span>
+                  </div>
+                  <div class="review-detail-item">
+                    <span class="label-medium text-secondary">Aadhar ID</span>
+                    <span class="body-large" id="review-aadhar">--</span>
+                  </div>
+                  <div class="review-detail-item">
+                    <span class="label-medium text-secondary">Joining Date</span>
+                    <span class="body-large" id="review-joining">--</span>
+                  </div>
+                  <div class="review-detail-item">
+                    <span class="label-medium text-secondary">Library Branch</span>
+                    <span class="body-large" id="review-branch">SH Library</span>
+                  </div>
+                  <div class="review-detail-item full-width">
+                    <span class="label-medium text-secondary">Permanent Address</span>
+                    <span class="body-large" id="review-address">--</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Terms & conditions check representation -->
+              <div class="stepper-terms">
+                <label class="checkbox-container">
+                  <input type="checkbox" id="student-terms-check" checked>
+                  <span class="checkmark"></span>
+                  <span class="body-medium">Acknowledge desk allocation and activate billing ledger instantly.</span>
+                </label>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="dialog-actions stepper-actions">
+        <button id="stepper-back-btn" class="btn btn-text ripple hidden">
+          <span class="label-large">Back</span>
+        </button>
+        <div class="stepper-action-right">
+          <button id="stepper-next-btn" class="btn btn-primary ripple">
+            <span class="label-large">Next</span>
+          </button>
+          <button id="stepper-save-btn" class="btn btn-primary ripple hidden">
+            <span class="label-large">Save Record</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ================= BOTTOM SHEET: RECORD PAYMENT (Mobile/Tapping Month) ================= -->
+  <div id="payment-sheet" class="bottom-sheet-overlay hidden">
+    <div class="bottom-sheet-container">
+      <div class="bottom-sheet-drag-handle"></div>
+      
+      <div class="bottom-sheet-header">
+        <h3 class="title-large" id="payment-sheet-title">Record Payment</h3>
+        <button id="close-payment-sheet-btn" class="icon-button ripple" aria-label="Close sheet">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="bottom-sheet-content">
+        <div class="payment-info-block tonal-surface">
+          <div class="payment-student-meta">
+            <h4 class="title-medium" id="payment-student-name">Student Name</h4>
+            <span class="body-small text-secondary" id="payment-student-seat">Seat A1</span>
+          </div>
+          <div class="payment-month-meta">
+            <span class="label-large text-primary" id="payment-month-label">January 2026</span>
+          </div>
+        </div>
+
+        <form id="payment-form">
+          <!-- Hidden inputs for mapping -->
+          <input type="hidden" id="payment-student-id">
+          <input type="hidden" id="payment-month">
+          <input type="hidden" id="payment-year">
+
+          <div class="text-field-container">
+            <input type="number" id="payment-amount" required placeholder=" " value="1000">
+            <label for="payment-amount">Payment Amount (₹)</label>
+            <span class="error-text">Amount must be greater than zero</span>
+          </div>
+
+          <div class="text-field-container">
+            <input type="date" id="payment-date" required placeholder=" ">
+            <label for="payment-date">Payment Date</label>
+          </div>
+
+          <div class="select-field-container">
+            <select id="payment-mode" required>
+              <option value="Cash" selected>Cash</option>
+              <option value="UPI">UPI (Google Pay / PhonePe)</option>
+              <option value="Card">Credit / Debit Card</option>
+              <option value="NetBanking">Net Banking</option>
+            </select>
+            <label for="payment-mode">Payment Mode</label>
+          </div>
+
+          <div class="select-field-container">
+            <select id="payment-status" required>
+              <option value="Paid" selected>Paid</option>
+              <option value="Due">Due</option>
+              <option value="NA">Not Applicable / Vaccant</option>
+            </select>
+            <label for="payment-status">Status</label>
+          </div>
+
+          <div class="payment-sheet-actions">
+            <button type="button" id="delete-payment-btn" class="btn btn-outlined text-error ripple hidden">
+              <span class="material-symbols-outlined btn-icon">delete</span>
+              <span class="label-large">Reset Status</span>
+            </button>
+            <button type="submit" class="btn btn-primary ripple flex-grow">
+              <span class="material-symbols-outlined btn-icon">check</span>
+              <span class="label-large">Save Payment</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ================= POPUP: BATCH FEES ENTRY (Selecting month from Fees grid) ================= -->
+  <div id="batch-payment-dialog" class="dialog-overlay hidden">
+    <div class="dialog-card elevation-3 max-width-600">
+      <div class="dialog-header">
+        <h3 class="title-large" id="batch-payment-title">Ledger View - January 2026</h3>
+        <button id="close-batch-payment-btn" class="icon-button ripple" aria-label="Close dialog">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      
+      <!-- Student payment status grid inside month -->
+      <div class="dialog-content scrollable-y max-height-400">
+        <table class="batch-ledger-table">
+          <thead>
+            <tr>
+              <th>Seat</th>
+              <th>Student Name</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="batch-ledger-tbody">
+            <!-- Injected by JS -->
+          </tbody>
+        </table>
+      </div>
+      
+      <div class="dialog-actions">
+        <button id="batch-payment-save-btn" class="btn btn-primary ripple">
+          <span class="label-large">Close</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ================= SNAPSHOT / ALERT SNACKBAR ================= -->
+  <div id="snackbar" class="snackbar elevation-2">
+    <span class="snackbar-text body-medium" id="snackbar-text">Alert message goes here</span>
+    <button class="snackbar-action label-large hidden" id="snackbar-action-btn">Undo</button>
+  </div>
+
+  <!-- Firebase App & Services Compat SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+  <!-- Main JavaScript File -->
+  <script src="app.js"></script>
+</body>
+</html>
