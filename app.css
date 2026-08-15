@@ -1957,29 +1957,32 @@ a {
   background-color: var(--md-sys-color-surface-container-low);
   border-radius: 12px;
   padding: 16px;
+  max-height: 380px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 .seat-map-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 12px;
-  width: max-content;
-  margin: 0 auto;
+  grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
 }
 .seat-btn {
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   border-radius: 10px;
-  border: 1.5px solid var(--md-sys-color-outline);
-  background: transparent;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  background-color: var(--md-sys-color-surface);
   color: var(--md-sys-color-on-surface);
   font-family: var(--font-display);
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 200ms, border-color 200ms, transform 150ms;
-}
+  transition: all 150ms ease;
 .seat-btn:hover:not(:disabled) {
   background-color: var(--md-state-hover);
   transform: scale(1.05);

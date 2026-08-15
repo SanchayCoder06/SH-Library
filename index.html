@@ -5,10 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SH Library & Self Study Centre</title>
   
-  <!-- PWA Support -->
+  <!-- PWA & iOS Safari Full Support -->
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#1A73E8">
   <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SH Library">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="mobile-web-app-capable" content="yes">
   
   <!-- Google Fonts & Material Symbols -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -527,6 +533,14 @@
                       </div>
 
                       <div class="info-item">
+                        <span class="material-symbols-outlined info-icon">schedule</span>
+                        <div class="info-texts">
+                          <span class="body-small text-secondary">Monthly Fee Due Date</span>
+                          <span class="body-large text-primary font-bold" id="detail-due-day">5th of every month</span>
+                        </div>
+                      </div>
+
+                      <div class="info-item">
                         <span class="material-symbols-outlined info-icon">store</span>
                         <div class="info-texts">
                           <span class="body-small text-secondary">Library Branch</span>
@@ -933,6 +947,12 @@
               </div>
 
               <div class="text-field-container">
+                <input type="number" id="student-due-day" name="dueDay" min="1" max="31" placeholder=" " value="5">
+                <label for="student-due-day">Monthly Fee Due Day (e.g. 5th of every month)</label>
+                <span class="error-text">Enter valid day of month (1 - 31)</span>
+              </div>
+
+              <div class="text-field-container">
                 <input type="text" id="student-branch" name="branch" readonly value="SH Library" placeholder=" ">
                 <label for="student-branch">Library Name (Default)</label>
               </div>
@@ -1002,6 +1022,10 @@
                   <div class="review-detail-item">
                     <span class="label-medium text-secondary">Joining Date</span>
                     <span class="body-large" id="review-joining">--</span>
+                  </div>
+                  <div class="review-detail-item">
+                    <span class="label-medium text-secondary">Monthly Due Date</span>
+                    <span class="body-large text-primary font-bold" id="review-due-day">5th of every month</span>
                   </div>
                   <div class="review-detail-item">
                     <span class="label-medium text-secondary">Library Branch</span>

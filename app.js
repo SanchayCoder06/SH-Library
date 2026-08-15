@@ -201,9 +201,8 @@ let selectedSeat = null;
 let currentFeesYear = '2026';
 let activeAdmin = null;
 
-// Seat structure configurations (Rows A-E, Cols 1-6 = 30 seats)
-const SEAT_ROWS = ['A', 'B', 'C', 'D', 'E'];
-const SEAT_COLS = [1, 2, 3, 4, 5, 6];
+// Library Seats Capacity: 82 Total Seats
+const TOTAL_SEATS = 82;
 const MONTHS_LIST = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const MONTHS_FULL = {
   'Jan': 'January', 'Feb': 'February', 'Mar': 'March', 'Apr': 'April',
@@ -976,11 +975,11 @@ function loadDashboardData() {
   // 1. Total Registered
   document.getElementById('stat-total-students').innerText = students.length;
 
-  // 2. Seats Occupied & Rate
-  const totalSeats = 30; // Defined size
+  // 2. Seats Occupied & Rate (out of 82 seats)
+  const totalSeats = TOTAL_SEATS; // 82 Total Seats
   const occupiedCount = students.filter(s => s.seat).length;
   const occupancyPercent = Math.round((occupiedCount / totalSeats) * 100);
-  document.getElementById('stat-seats-occupied').innerHTML = `${occupiedCount} <span class="body-medium text-secondary" id="stat-occupancy-percent">(${occupancyPercent}%)</span>`;
+  document.getElementById('stat-seats-occupied').innerHTML = `${occupiedCount} / ${totalSeats} <span class="body-medium text-secondary" id="stat-occupancy-percent">(${occupancyPercent}%)</span>`;
 
   // 3. Financial calculations for the active month (dynamic current month)
   const now = new Date();
@@ -1117,7 +1116,7 @@ function renderStudentsList() {
           ${imgMarkup}
           <div class="student-meta-info">
             <span class="title-medium">${student.name}</span>
-            <span class="body-small">${student.phone}</span>
+            <span class="body-small text-secondary">Seat ${student.seat || '--'} • Due: ${student.dueDay || '5'}th</span>
           </div>
         </div>
         <div class="student-seat-badge label-medium">Seat ${student.seat || '--'}</div>
@@ -1176,6 +1175,9 @@ function selectStudent(studentId) {
   document.getElementById('detail-aadhar').innerText = formatAadhar(student.aadhar);
   document.getElementById('detail-address').innerText = student.address;
   document.getElementById('detail-joining-date').innerText = formatDate(student.joining);
+  const dueDayVal = student.dueDay || '5';
+  const dueDayElem = document.getElementById('detail-due-day');
+  if (dueDayElem) dueDayElem.innerText = `${dueDayVal}th of every month`;
   document.getElementById('detail-library-name').innerText = student.branch || 'SH Library';
 
   // Photo
@@ -1262,7 +1264,7 @@ function openPaymentRecording(student, month) {
   // Set Sheet fields
   document.getElementById('payment-student-id').value = student.id;
   document.getElementById('payment-student-name').innerText = student.name;
-  document.getElementById('payment-student-seat').innerText = `Seat ${student.seat || '--'}`;
+  document.getElementById('payment-student-seat').innerText = `Seat ${student.seat || '--'} • Due Day: ${student.dueDay || '5'}th`;
   document.getElementById('payment-month-label').innerText = `${MONTHS_FULL[month]} ${currentFeesYear}`;
   document.getElementById('payment-month').value = month;
   document.getElementById('payment-year').value = currentFeesYear;
@@ -1428,14 +1430,16 @@ function openStudentModal(student = null) {
       document.getElementById('photo-upload-placeholder').classList.add('hidden');
     }
     
+    document.getElementById('student-due-day').value = student.dueDay || '5';
     selectedSeat = student.seat;
-    document.getElementById('selected-seat-feedback').innerText = `Seat ${student.seat}`;
-    document.getElementById('student-allotted-seat').value = student.seat;
+    document.getElementById('selected-seat-feedback').innerText = `Seat ${student.seat || 'None'}`;
+    document.getElementById('student-allotted-seat').value = student.seat || '';
   } else {
     title.innerText = 'Onboard New Student';
     form.removeAttribute('data-mode');
     form.removeAttribute('data-id');
     document.getElementById('student-joining').value = new Date().toISOString().split('T')[0];
+    document.getElementById('student-due-day').value = '5';
   }
 
   renderStep(1);
@@ -1498,36 +1502,34 @@ function renderSeatMapGrid() {
   // Find all occupied seats mapping, ignoring current student being edited
   const occupiedSeats = students
     .filter(s => s.seat && s.id !== editingId)
-    .map(s => s.seat);
+    .map(s => String(s.seat).trim());
 
-  SEAT_ROWS.forEach(row => {
-    SEAT_COLS.forEach(col => {
-      const seatId = `${row}${col}`;
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'seat-btn';
-      btn.innerText = seatId;
+  for (let i = 1; i <= TOTAL_SEATS; i++) {
+    const seatId = String(i);
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'seat-btn';
+    btn.innerText = seatId;
 
-      if (occupiedSeats.includes(seatId)) {
-        btn.disabled = true;
-      }
+    const isOccupied = occupiedSeats.some(s => s === seatId || s === `Seat ${seatId}` || s.toLowerCase() === `seat ${seatId}`);
+    if (isOccupied) {
+      btn.disabled = true;
+    }
 
-      if (selectedSeat === seatId) {
-        btn.classList.add('selected');
-      }
+    if (selectedSeat && (String(selectedSeat) === seatId || String(selectedSeat) === `Seat ${seatId}`)) {
+      btn.classList.add('selected');
+    }
 
-      btn.addEventListener('click', () => {
-        // Toggle active highlighted button
-        document.querySelectorAll('.seat-btn').forEach(b => b.classList.remove('selected'));
-        btn.classList.add('selected');
-        selectedSeat = seatId;
-        document.getElementById('selected-seat-feedback').innerText = `Seat ${seatId}`;
-        document.getElementById('student-allotted-seat').value = seatId;
-      });
-
-      grid.appendChild(btn);
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.seat-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedSeat = seatId;
+      document.getElementById('selected-seat-feedback').innerText = `Seat ${seatId}`;
+      document.getElementById('student-allotted-seat').value = seatId;
     });
-  });
+
+    grid.appendChild(btn);
+  }
 }
 
 function fillVerificationStep() {
@@ -1536,6 +1538,7 @@ function fillVerificationStep() {
   const aadhar = document.getElementById('student-aadhar').value;
   const address = document.getElementById('student-address').value;
   const joining = document.getElementById('student-joining').value;
+  const dueDay = document.getElementById('student-due-day').value || '5';
   const branch = document.getElementById('student-branch').value;
   const photoPreview = document.getElementById('form-photo-preview');
 
@@ -1545,6 +1548,7 @@ function fillVerificationStep() {
   document.getElementById('review-aadhar').innerText = formatAadhar(aadhar);
   document.getElementById('review-address').innerText = address;
   document.getElementById('review-joining').innerText = formatDate(joining);
+  document.getElementById('review-due-day').innerText = `${dueDay}th of every month`;
   document.getElementById('review-branch').innerText = branch;
 
   const reviewImg = document.getElementById('review-photo-preview');
@@ -1679,6 +1683,7 @@ function saveStudentRecord() {
   const aadhar = document.getElementById('student-aadhar').value;
   const address = document.getElementById('student-address').value;
   const joining = document.getElementById('student-joining').value;
+  const dueDay = document.getElementById('student-due-day').value || '5';
   const branch = document.getElementById('student-branch').value;
   const photo = document.getElementById('form-photo-preview').src || '';
 
@@ -1694,6 +1699,7 @@ function saveStudentRecord() {
       aadhar,
       address,
       joining,
+      dueDay,
       seat: selectedSeat,
       branch,
       photo: photo.startsWith('data:') ? photo : original.photo
@@ -1707,6 +1713,7 @@ function saveStudentRecord() {
       aadhar,
       address,
       joining,
+      dueDay,
       seat: selectedSeat,
       branch,
       photo,
