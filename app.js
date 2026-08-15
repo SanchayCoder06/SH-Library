@@ -969,6 +969,13 @@ function setupNavigators() {
     if (m) m.classList.add('hidden');
   });
 
+  const seatsModal = document.getElementById('seats-chart-modal');
+  if (seatsModal) {
+    seatsModal.addEventListener('click', (e) => {
+      if (e.target === seatsModal) seatsModal.classList.add('hidden');
+    });
+  }
+
   // Notifications dropdown toggling and mark as read
   const notifBtn = document.getElementById('notifications-btn');
   const notifMenu = document.getElementById('notifications-dropdown');
