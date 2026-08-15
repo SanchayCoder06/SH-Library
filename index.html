@@ -231,10 +231,6 @@
       <!-- Top Bar -->
       <header class="top-app-bar" id="top-app-bar">
         <div class="top-bar-left">
-          <!-- Mobile Menu Drawer Toggle -->
-          <button id="mobile-menu-btn" class="icon-button ripple mobile-only" aria-label="Open menu">
-            <span class="material-symbols-outlined">menu</span>
-          </button>
           <div class="logo-lockup-small">
             <img src="icon.svg" alt="Logo" class="logo-tiny">
             <span class="wordmark title-large">SH Library</span>
@@ -390,35 +386,6 @@
                     <span class="label-large">Add Student</span>
                   </button>
                 </div>
-              </div>
-            </div>
-
-            <!-- Facilities Info Box & Announcement -->
-            <div class="dashboard-info-card elevation-1 tonal-surface">
-              <div class="info-hero">
-                <h3 class="title-large text-primary">SH Library & Self Study Centre</h3>
-                <p class="body-medium text-secondary">Study cabin booking, automated billing & active monitoring dashboard.</p>
-              </div>
-              <div class="facilities-preview-grid">
-                <div class="facility-preview-item">
-                  <span class="material-symbols-outlined text-primary">wifi</span>
-                  <span class="label-medium">High Speed Wi-Fi</span>
-                </div>
-                <div class="facility-preview-item">
-                  <span class="material-symbols-outlined text-primary">ac_unit</span>
-                  <span class="label-medium">Full AC</span>
-                </div>
-                <div class="facility-preview-item">
-                  <span class="material-symbols-outlined text-primary">power</span>
-                  <span class="label-medium">Power Socket on Desk</span>
-                </div>
-                <div class="facility-preview-item">
-                  <span class="material-symbols-outlined text-primary">check_circle</span>
-                  <span class="label-medium">No Holidays</span>
-                </div>
-              </div>
-              <div class="info-footer">
-                <span class="body-small text-secondary">Azamgarh Road, Jiyanpur, Uttar Pradesh</span>
               </div>
             </div>
           </div>
@@ -625,7 +592,6 @@
               <div class="fees-year-tabs-container">
                 <div class="fees-year-tabs" id="fees-year-tabs">
                   <button class="year-tab active ripple" data-year="2026">2026</button>
-                  <button class="year-tab ripple" data-year="2025">2025</button>
                   <div class="tab-indicator" id="year-tab-indicator"></div>
                 </div>
               </div>
@@ -831,7 +797,7 @@
       </div>
     </main>
 
-    <!-- Mobile Bottom Navigation Bar with Centered (+) Button -->
+    <!-- Mobile Bottom Navigation Bar -->
     <nav class="bottom-nav mobile-only" id="bottom-nav">
       <button class="bottom-nav-item active ripple" data-view="dashboard">
         <div class="bottom-nav-icon-container">
@@ -849,17 +815,20 @@
         <span class="label-medium bottom-nav-label">Students</span>
       </button>
 
-      <!-- Center Action Button (+) for Mobile -->
-      <button class="bottom-nav-fab-center add-student-trigger ripple" id="fab-center-btn" aria-label="Add Student" title="Add Student">
-        <span class="material-symbols-outlined">add</span>
-      </button>
-
       <button class="bottom-nav-item ripple" data-view="fees">
         <div class="bottom-nav-icon-container">
           <div class="pill-active-indicator"></div>
           <span class="material-symbols-outlined">payments</span>
         </div>
         <span class="label-medium bottom-nav-label">Fees</span>
+      </button>
+
+      <button class="bottom-nav-item ripple" data-view="contact">
+        <div class="bottom-nav-icon-container">
+          <div class="pill-active-indicator"></div>
+          <span class="material-symbols-outlined">map</span>
+        </div>
+        <span class="label-medium bottom-nav-label">Contact</span>
       </button>
 
       <button class="bottom-nav-item ripple" data-view="profile">
@@ -870,6 +839,12 @@
         <span class="label-medium bottom-nav-label">Profile</span>
       </button>
     </nav>
+
+    <!-- Floating Action Button (FAB) with centered icon -->
+    <button class="fab-extended ripple add-student-trigger" id="fab-add-student" aria-label="Add Student">
+      <span class="material-symbols-outlined">add</span>
+      <span class="fab-label label-large">Add Student</span>
+    </button>
 
   </div>
 
