@@ -2221,10 +2221,12 @@ a {
   .top-app-bar .search-container { display: none; } /* Search goes full-screen trigger or nested in view page */
   
   .view-content-wrapper {
-    padding-bottom: 80px; /* Space for Bottom Nav Bar */
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)); /* Space for Bottom Nav Bar */
+    -webkit-overflow-scrolling: touch;
   }
   .app-view {
     padding: 16px;
+    -webkit-overflow-scrolling: touch;
   }
 
   /* Bottom nav mobile styling */
@@ -2233,13 +2235,16 @@ a {
     bottom: 0;
     left: 0;
     width: 100vw;
-    height: 80px;
+    height: calc(72px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
     background-color: var(--md-sys-color-surface-container);
     border-top: 1px solid var(--md-sys-color-surface-variant);
     display: flex;
     justify-content: space-around;
     align-items: center;
     z-index: 100;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
   }
   .bottom-nav-item {
     background: transparent;
