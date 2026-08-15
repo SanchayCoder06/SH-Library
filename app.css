@@ -2229,7 +2229,7 @@ a {
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Bottom nav mobile styling */
+  /* Bottom nav mobile styling with curved top corners */
   .bottom-nav {
     position: fixed;
     bottom: 0;
@@ -2239,6 +2239,9 @@ a {
     padding-bottom: env(safe-area-inset-bottom, 0px);
     background-color: var(--md-sys-color-surface-container);
     border-top: 1px solid var(--md-sys-color-surface-variant);
+    border-top-left-radius: 24px;
+    border-top-right-radius: 24px;
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.12);
     display: flex;
     justify-content: space-around;
     align-items: center;
@@ -2342,14 +2345,17 @@ a {
     grid-template-columns: 1fr;
   }
 
-  /* Gmail Split view adjustments for Mobile */
+  /* Split view adjustments for Mobile with curved corners */
   .split-view-container {
     height: 100%;
-    border-radius: 0;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid var(--md-sys-color-surface-variant);
   }
   .split-pane-list {
     width: 100%;
     border-right: none;
+    border-radius: 20px;
   }
   .split-pane-details {
     position: absolute;
@@ -2361,6 +2367,7 @@ a {
     transition: left 300ms var(--easing-standard);
     z-index: 110;
     padding: 16px;
+    border-radius: 20px;
   }
   .split-pane-details.active-detail {
     left: 0;
@@ -2369,15 +2376,17 @@ a {
     grid-template-columns: 1fr;
   }
 
-  /* Add/Edit wizard stepper full-screen structure on mobile */
+  /* Add/Edit wizard modal rounded sheet on mobile */
   .student-modal-card {
     width: 100vw;
-    height: 100vh;
-    max-height: 100vh;
-    border-radius: 0;
+    max-height: 92vh;
+    border-top-left-radius: 24px;
+    border-top-right-radius: 24px;
     position: fixed;
-    top: 0;
+    bottom: 0;
+    top: auto;
     left: 0;
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.25);
   }
   .stepper-main-container {
     padding: 16px;
