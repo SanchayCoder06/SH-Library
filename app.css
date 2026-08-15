@@ -2061,50 +2061,65 @@ a {
 /* Interactive Seats Availability Chart Modal Grid */
 .seats-chart-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(46px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
   gap: 10px;
   width: 100%;
   box-sizing: border-box;
 }
 .seat-chart-btn {
-  width: 46px;
-  height: 46px;
+  min-height: 48px;
   border-radius: 12px;
   border: 1.5px solid var(--md-sys-color-outline-variant);
-  background-color: var(--md-sys-color-surface);
+  background-color: var(--md-sys-color-surface-container-lowest);
   color: var(--md-sys-color-on-surface);
   font-family: var(--font-display);
-  font-size: 13px;
-  font-weight: 600;
   cursor: pointer;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 2px;
+  padding: 4px;
   transition: all 180ms cubic-bezier(0.2, 0, 0, 1);
   position: relative;
+  box-sizing: border-box;
 }
 .seat-chart-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
+.seat-num-text {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+}
+.seat-status-tag {
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.2px;
+}
 .seat-chart-btn.available {
-  background-color: var(--md-sys-color-surface);
+  background-color: var(--md-sys-color-surface-container-lowest);
   border-color: #198754;
   color: #198754;
 }
 .seat-chart-btn.available:hover {
-  background-color: rgba(25, 135, 84, 0.08);
+  background-color: rgba(25, 135, 84, 0.1);
 }
 .seat-chart-btn.occupied {
-  background-color: var(--md-sys-color-primary-container);
-  border-color: var(--md-sys-color-primary);
-  color: var(--md-sys-color-on-primary-container);
+  background-color: #d7e3ff;
+  border-color: #1A73E8;
+  color: #001b3e;
   box-shadow: 0 2px 6px rgba(26, 115, 232, 0.18);
 }
+.seat-chart-btn.occupied .seat-status-tag {
+  color: #1A73E8;
+  font-weight: 700;
+}
 .seat-chart-btn.active-selected {
-  outline: 2px solid var(--md-sys-color-primary);
+  outline: 2.5px solid var(--md-sys-color-primary);
   outline-offset: 2px;
   transform: scale(1.06);
 }

@@ -1040,7 +1040,7 @@ function loadDashboardData() {
 
   // 2. Seats Occupied & Rate (out of 82 seats)
   const totalSeats = TOTAL_SEATS; // 82 Total Seats
-  const occupiedCount = students.filter(s => s.seat).length;
+  const occupiedCount = students.filter(s => extractSeatNumber(s.seat) !== null).length;
   const occupancyPercent = Math.round((occupiedCount / totalSeats) * 100);
   document.getElementById('stat-seats-occupied').innerHTML = `${occupiedCount} / ${totalSeats} <span class="body-medium text-secondary" id="stat-occupancy-percent">(${occupancyPercent}%)</span>`;
 
@@ -1554,18 +1554,36 @@ function renderStep(step) {
   }
 }
 
+function extractSeatNumber(seatVal) {
+  if (seatVal === null || seatVal === undefined) return null;
+  const str = String(seatVal).trim();
+  if (!str) return null;
+  const match = str.match(/\d+/);
+  if (match) {
+    const num = parseInt(match[0], 10);
+    if (!isNaN(num) && num >= 1 && num <= TOTAL_SEATS) return num;
+  }
+  return null;
+}
+
 function renderSeatMapGrid() {
   const grid = document.getElementById('seat-map-grid');
+  if (!grid) return;
   grid.innerHTML = '';
 
   const students = DB.getStudents();
   const form = document.getElementById('student-entry-form');
-  const editingId = form.getAttribute('data-id');
+  const editingId = form ? form.getAttribute('data-id') : null;
 
-  // Find all occupied seats mapping, ignoring current student being edited
-  const occupiedSeats = students
-    .filter(s => s.seat && s.id !== editingId)
-    .map(s => String(s.seat).trim());
+  // Find all occupied seat numbers, excluding current student being edited
+  const occupiedSet = new Set(
+    students
+      .filter(s => s.id !== editingId)
+      .map(s => extractSeatNumber(s.seat))
+      .filter(n => n !== null)
+  );
+
+  const selectedNum = extractSeatNumber(selectedSeat);
 
   for (let i = 1; i <= TOTAL_SEATS; i++) {
     const seatId = String(i);
@@ -1574,12 +1592,12 @@ function renderSeatMapGrid() {
     btn.className = 'seat-btn';
     btn.innerText = seatId;
 
-    const isOccupied = occupiedSeats.some(s => s === seatId || s === `Seat ${seatId}` || s.toLowerCase() === `seat ${seatId}`);
-    if (isOccupied) {
+    if (occupiedSet.has(i)) {
       btn.disabled = true;
+      btn.title = `Seat ${i} is already occupied`;
     }
 
-    if (selectedSeat && (String(selectedSeat) === seatId || String(selectedSeat) === `Seat ${seatId}`)) {
+    if (selectedNum === i) {
       btn.classList.add('selected');
     }
 
@@ -1587,8 +1605,10 @@ function renderSeatMapGrid() {
       document.querySelectorAll('.seat-btn').forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
       selectedSeat = seatId;
-      document.getElementById('selected-seat-feedback').innerText = `Seat ${seatId}`;
-      document.getElementById('student-allotted-seat').value = seatId;
+      const feedback = document.getElementById('selected-seat-feedback');
+      const input = document.getElementById('student-allotted-seat');
+      if (feedback) feedback.innerText = `Seat ${seatId}`;
+      if (input) input.value = seatId;
     });
 
     grid.appendChild(btn);
@@ -1612,17 +1632,16 @@ function openSeatsAvailabilityChart() {
 
   const students = DB.getStudents();
   
-  // Find mapping of seat number -> student
-  const seatMap = {};
+  // Build lookup mapping seat number -> student
+  const seatToStudentMap = {};
   students.forEach(s => {
-    if (s.seat) {
-      const cleanSeat = String(s.seat).replace(/seat\s*/i, '').trim();
-      seatMap[cleanSeat] = s;
-      seatMap[String(s.seat).trim()] = s;
+    const sNum = extractSeatNumber(s.seat);
+    if (sNum !== null) {
+      seatToStudentMap[sNum] = s;
     }
   });
 
-  const occupiedCount = students.filter(s => s.seat).length;
+  const occupiedCount = Object.keys(seatToStudentMap).length;
   const availableCount = Math.max(0, TOTAL_SEATS - occupiedCount);
 
   const occElem = document.getElementById('chart-occupied-count');
@@ -1631,15 +1650,15 @@ function openSeatsAvailabilityChart() {
   if (availElem) availElem.innerText = availableCount;
 
   for (let i = 1; i <= TOTAL_SEATS; i++) {
-    const seatNum = String(i);
-    const student = seatMap[seatNum] || seatMap[`Seat ${seatNum}`];
+    const student = seatToStudentMap[i];
+    const isOccupied = !!student;
     
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = `seat-chart-btn ripple ${student ? 'occupied' : 'available'}`;
+    btn.className = `seat-chart-btn ripple ${isOccupied ? 'occupied' : 'available'}`;
     btn.innerHTML = `
-      <span style="font-size: 13px; font-weight: 700;">${seatNum}</span>
-      <span style="font-size: 9px; opacity: 0.85;">${student ? 'Busy' : 'Free'}</span>
+      <span class="seat-num-text">${i}</span>
+      <span class="seat-status-tag">${isOccupied ? 'Occupied' : 'Free'}</span>
     `;
 
     btn.addEventListener('click', () => {
@@ -1653,11 +1672,11 @@ function openSeatsAvailabilityChart() {
           infoLeft.innerHTML = `
             ${imgMarkup}
             <div>
-              <div style="display: flex; align-items: center; gap: 6px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
                 <span class="title-medium font-bold">${student.name}</span>
-                <span class="chip chip-neutral label-small" style="padding: 2px 8px; font-size: 11px;">Seat ${seatNum}</span>
+                <span class="chip chip-neutral label-small" style="padding: 2px 8px; font-size: 11px; background-color: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); font-weight: 600;">Seat ${i} (Occupied)</span>
               </div>
-              <span class="body-small text-secondary">${student.phone} • Due: ${student.dueDay || '5'}th</span>
+              <span class="body-small text-secondary">${student.phone} • Monthly Due: ${student.dueDay || '5'}th</span>
             </div>
           `;
         }
@@ -1679,12 +1698,12 @@ function openSeatsAvailabilityChart() {
       } else {
         if (infoLeft) {
           infoLeft.innerHTML = `
-            <div style="width: 36px; height: 36px; border-radius: 50%; background-color: rgba(25, 135, 84, 0.15); color: #198754; display: flex; align-items: center; justify-content: center;">
-              <span class="material-symbols-outlined" style="font-size: 20px;">check_circle</span>
+            <div style="width: 38px; height: 38px; border-radius: 50%; background-color: rgba(25, 135, 84, 0.15); color: #198754; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <span class="material-symbols-outlined" style="font-size: 22px;">check_circle</span>
             </div>
             <div>
-              <span class="title-medium font-bold" style="color: #198754;">Seat ${seatNum} is Available</span>
-              <span class="body-small text-secondary">Ready for student allotment</span>
+              <span class="title-medium font-bold" style="color: #198754;">Seat ${i} is Available</span>
+              <span class="body-small text-secondary">Free cabin ready for student allotment</span>
             </div>
           `;
         }
@@ -1700,11 +1719,11 @@ function openSeatsAvailabilityChart() {
           assignBtn.addEventListener('click', () => {
             modal.classList.add('hidden');
             openStudentModal();
-            selectedSeat = seatNum;
-            const seatFeedback = document.getElementById('selected-seat-feedback');
-            const seatInput = document.getElementById('student-allotted-seat');
-            if (seatFeedback) seatFeedback.innerText = `Seat ${seatNum}`;
-            if (seatInput) seatInput.value = seatNum;
+            selectedSeat = String(i);
+            const feedback = document.getElementById('selected-seat-feedback');
+            const input = document.getElementById('student-allotted-seat');
+            if (feedback) feedback.innerText = `Seat ${i}`;
+            if (input) input.value = String(i);
           });
         }
       }
