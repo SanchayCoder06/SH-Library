@@ -1101,7 +1101,7 @@ function loadDashboardData() {
           ${imgMarkup}
           <div class="student-meta-info">
             <span class="title-medium font-bold">${student.name}</span>
-            <span class="body-small text-secondary">Seat ${student.seat || '--'} • Due: ${student.dueDay || '5'}th</span>
+            <span class="body-small text-secondary">Seat ${student.seat || '--'}</span>
           </div>
         </div>
         <div class="student-list-item-right">
@@ -1189,7 +1189,7 @@ function renderStudentsList() {
           ${imgMarkup}
           <div class="student-meta-info">
             <span class="title-medium">${student.name}</span>
-            <span class="body-small text-secondary">Seat ${student.seat || '--'} • Due: ${student.dueDay || '5'}th</span>
+            <span class="body-small text-secondary">Seat ${student.seat || '--'}</span>
           </div>
         </div>
         <div class="student-seat-badge label-medium">Seat ${student.seat || '--'}</div>
@@ -1248,9 +1248,6 @@ function selectStudent(studentId) {
   document.getElementById('detail-aadhar').innerText = formatAadhar(student.aadhar);
   document.getElementById('detail-address').innerText = student.address;
   document.getElementById('detail-joining-date').innerText = formatDate(student.joining);
-  const dueDayVal = student.dueDay || '5';
-  const dueDayElem = document.getElementById('detail-due-day');
-  if (dueDayElem) dueDayElem.innerText = `${dueDayVal}th of every month`;
   document.getElementById('detail-library-name').innerText = student.branch || 'SH Library';
 
   // Photo
@@ -1348,7 +1345,7 @@ function openPaymentRecording(student, month) {
   // Set Sheet fields
   document.getElementById('payment-student-id').value = student.id;
   document.getElementById('payment-student-name').innerText = student.name;
-  document.getElementById('payment-student-seat').innerText = `Seat ${student.seat || '--'} • Due Day: ${student.dueDay || '5'}th`;
+  document.getElementById('payment-student-seat').innerText = `Seat ${student.seat || '--'}`;
   document.getElementById('payment-month-label').innerText = `${MONTHS_FULL[month]} ${currentFeesYear}`;
   document.getElementById('payment-month').value = month;
   document.getElementById('payment-year').value = currentFeesYear;
@@ -1566,7 +1563,6 @@ function openStudentModal(student = null) {
       document.getElementById('photo-upload-placeholder').classList.add('hidden');
     }
     
-    document.getElementById('student-due-day').value = student.dueDay || '5';
     selectedSeat = student.seat;
     document.getElementById('selected-seat-feedback').innerText = `Seat ${student.seat || 'None'}`;
     document.getElementById('student-allotted-seat').value = student.seat || '';
@@ -1575,7 +1571,6 @@ function openStudentModal(student = null) {
     form.removeAttribute('data-mode');
     form.removeAttribute('data-id');
     document.getElementById('student-joining').value = new Date().toISOString().split('T')[0];
-    document.getElementById('student-due-day').value = '5';
   }
 
   renderStep(1);
@@ -1749,7 +1744,7 @@ function openSeatsAvailabilityChart() {
                 <span class="title-medium font-bold">${student.name}</span>
                 <span class="chip chip-neutral label-small" style="padding: 2px 8px; font-size: 11px; background-color: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); font-weight: 600;">Seat ${i} (Occupied)</span>
               </div>
-              <span class="body-small text-secondary">${student.phone} • Monthly Due: ${student.dueDay || '5'}th</span>
+              <span class="body-small text-secondary">${student.phone}</span>
             </div>
           `;
         }
@@ -1824,7 +1819,6 @@ function fillVerificationStep() {
   document.getElementById('review-aadhar').innerText = formatAadhar(aadhar);
   document.getElementById('review-address').innerText = address;
   document.getElementById('review-joining').innerText = formatDate(joining);
-  document.getElementById('review-due-day').innerText = `${dueDay}th of every month`;
   document.getElementById('review-branch').innerText = branch;
 
   const reviewImg = document.getElementById('review-photo-preview');
@@ -1959,7 +1953,6 @@ function saveStudentRecord() {
   const aadhar = document.getElementById('student-aadhar').value;
   const address = document.getElementById('student-address').value;
   const joining = document.getElementById('student-joining').value;
-  const dueDay = document.getElementById('student-due-day').value || '5';
   const branch = document.getElementById('student-branch').value;
   const photo = document.getElementById('form-photo-preview').src || '';
 
@@ -1975,7 +1968,6 @@ function saveStudentRecord() {
       aadhar,
       address,
       joining,
-      dueDay,
       seat: selectedSeat,
       branch,
       photo: photo.startsWith('data:') ? photo : original.photo
@@ -1989,7 +1981,6 @@ function saveStudentRecord() {
       aadhar,
       address,
       joining,
-      dueDay,
       seat: selectedSeat,
       branch,
       photo,
