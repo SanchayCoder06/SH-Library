@@ -697,30 +697,22 @@ function getStudentMonthStatus(student, yearStr, month) {
   const payment = payments[month];
   const studentRate = getStudentMonthlyRate(student);
 
-  // 1. If explicitly recorded as Paid by user
+  // 1. If recorded as Paid
   if (payment && payment.status === 'Paid') {
     const amt = (payment.amount !== undefined && payment.amount !== null && !isNaN(Number(payment.amount))) ? Number(payment.amount) : studentRate;
     return { status: 'Paid', amount: amt, isPaid: true, isDue: false, isUpcoming: false };
   }
 
-  // 2. If explicitly recorded as Due by user
-  if (payment && payment.status === 'Due') {
-    const amt = (payment.amount !== undefined && payment.amount !== null && !isNaN(Number(payment.amount))) ? Number(payment.amount) : studentRate;
-    return { status: 'Due', amount: amt, isPaid: false, isDue: true, isUpcoming: false };
-  }
-
   const { year: joinYear, monthIndex: joinMonthIdx } = getStudentJoiningInfo(student);
 
-  // If before joining year or prior to/in the joining month itself:
-  // Dues are NOT added automatically. Previous months and joining month are added manually by the user.
-  const isPriorOrJoiningMonth = (targetYear < joinYear) || (targetYear === joinYear && monthIdx <= joinMonthIdx);
-
-  if (isPriorOrJoiningMonth) {
+  // 2. Prior to joining month -> Upcoming (not applicable / not joined yet)
+  const isPriorMonth = (targetYear < joinYear) || (targetYear === joinYear && monthIdx < joinMonthIdx);
+  if (isPriorMonth) {
     return { status: 'Upcoming', amount: 0, isPaid: false, isDue: false, isUpcoming: true };
   }
 
-  // 3. For months AFTER the joining month (starting from the next month itself):
-  // Check if any subsequent month was marked Paid (i.e. skipped prior month after joining)
+  // 3. For joining month and all subsequent months:
+  // Check if any subsequent month was marked Paid (i.e. skipped past month)
   const paidIndices = [];
   MONTHS_LIST.forEach((m, idx) => {
     if (payments[m] && payments[m].status === 'Paid') {
@@ -731,19 +723,20 @@ function getStudentMonthStatus(student, yearStr, month) {
   if (paidIndices.length > 0) {
     const maxPaidIdx = Math.max(...paidIndices);
     if (monthIdx < maxPaidIdx) {
-      // Skipped month after joining
-      return { status: 'Due', amount: (payment && payment.amount ? parseInt(payment.amount, 10) : studentRate), isPaid: false, isDue: true, isUpcoming: false };
+      // Skipped month after joining is automatically Due
+      return { status: 'Due', amount: studentRate, isPaid: false, isDue: true, isUpcoming: false };
     }
   }
 
-  // Check if this month is past/present relative to current real calendar month
+  // 4. Check against current real-world calendar date
   const now = new Date();
   const nowYear = now.getFullYear();
   const nowMonthIdx = now.getMonth();
 
-  const isEligiblePastOrCurrentMonth = (targetYear < nowYear) || (targetYear === nowYear && monthIdx <= nowMonthIdx);
+  // If month is in past or current active calendar month, it is automatically Due until paid
+  const isPastOrCurrentMonth = (targetYear < nowYear) || (targetYear === nowYear && monthIdx <= nowMonthIdx);
 
-  if (isEligiblePastOrCurrentMonth) {
+  if (isPastOrCurrentMonth) {
     return { status: 'Due', amount: studentRate, isPaid: false, isDue: true, isUpcoming: false };
   }
 
@@ -1486,7 +1479,6 @@ function openPaymentRecording(student, month, forceEdit = false) {
   };
 
   document.getElementById('payment-mode').value = payment.mode || 'Cash';
-  document.getElementById('payment-status').value = payment.status || 'Paid';
 
   const deleteBtn = document.getElementById('delete-payment-btn');
   if (hasExistingRecord) {
@@ -1544,7 +1536,6 @@ function setupDialogs() {
     const date = document.getElementById('payment-date').value;
     const dueDate = document.getElementById('payment-due-date').value;
     const mode = document.getElementById('payment-mode').value;
-    const status = document.getElementById('payment-status').value;
 
     const amount = amountVal === '' ? 0 : Number(amountVal);
 
@@ -1553,7 +1544,7 @@ function setupDialogs() {
     if (student) {
       if (!student.payments[year]) student.payments[year] = {};
       student.payments[year][month] = {
-        status,
+        status: 'Paid',
         amount: isNaN(amount) ? 0 : amount,
         date: date || '',
         dueDate: dueDate || '',
