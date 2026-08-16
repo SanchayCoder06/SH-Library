@@ -2649,11 +2649,16 @@ function renderNotifications() {
   }
 }
 
-// Custom text formatters
+// Custom text formatters (Indian Date Format: Day Month Year e.g. "16 Aug 2026")
 function formatDate(dateStr) {
   if (!dateStr) return '--';
-  const options = { year: 'numeric', month: 'short', day: 'numeric' };
-  return new Date(dateStr).toLocaleDateString('en-US', options);
+  const d = parseISODate(dateStr) || new Date(dateStr);
+  if (isNaN(d.getTime())) return dateStr;
+  const day = String(d.getDate()).padStart(2, '0');
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const month = monthNames[d.getMonth()];
+  const year = d.getFullYear();
+  return `${day} ${month} ${year}`;
 }
 
 function formatAadhar(aadharStr) {
@@ -2835,8 +2840,22 @@ function openStylishCalendar({ initialDate, targetInputId, title, onSelect }) {
 
 function parseISODate(str) {
   if (!str) return null;
-  const parts = String(str).trim().split('-');
-  if (parts.length === 3) {
+  const s = String(str).trim();
+
+  // Format: DD/MM/YYYY or DD-MM-YYYY (Indian Numeric)
+  if (/^\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4}$/.test(s)) {
+    const parts = s.split(/[\/\-]/);
+    const d = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10) - 1;
+    const y = parseInt(parts[2], 10);
+    if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+      return new Date(y, m, d);
+    }
+  }
+
+  // Format: YYYY-MM-DD or YYYY/MM/DD (ISO)
+  if (/^\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2}$/.test(s)) {
+    const parts = s.split(/[\/\-]/);
     const y = parseInt(parts[0], 10);
     const m = parseInt(parts[1], 10) - 1;
     const d = parseInt(parts[2], 10);
@@ -2844,7 +2863,8 @@ function parseISODate(str) {
       return new Date(y, m, d);
     }
   }
-  const timestamp = Date.parse(str);
+
+  const timestamp = Date.parse(s);
   return isNaN(timestamp) ? null : new Date(timestamp);
 }
 
@@ -2858,9 +2878,9 @@ function formatDateToISO(date) {
 function formatDisplayDate(date) {
   const dayName = CAL_DAY_NAMES[date.getDay()].substring(0, 3);
   const monthName = CAL_MONTH_NAMES[date.getMonth()].substring(0, 3);
-  const day = date.getDate();
+  const day = String(date.getDate()).padStart(2, '0');
   const year = date.getFullYear();
-  return `${dayName}, ${monthName} ${day}, ${year}`;
+  return `${dayName}, ${day} ${monthName} ${year}`;
 }
 
 function renderCalendarGrid() {
