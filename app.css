@@ -535,8 +535,10 @@ a {
   opacity: 1;
 }
 .logo-small {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  border-radius: 8px;
 }
 .logo-text {
   font-family: var(--font-display);
@@ -634,8 +636,10 @@ a {
   gap: 8px;
 }
 .logo-tiny {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  border-radius: 6px;
 }
 .wordmark {
   font-family: var(--font-display);
@@ -855,8 +859,11 @@ a {
   margin-bottom: 24px;
 }
 .logo-icon {
-  width: 64px;
-  height: 64px;
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  border-radius: 16px;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.12));
 }
 .wordmark-container {
   display: flex;
@@ -935,10 +942,13 @@ a {
   gap: 24px;
 }
 .auth-logo {
-  width: 48px;
-  height: 48px;
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
   margin: 0 auto 16px auto;
   display: block;
+  border-radius: 14px;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.1));
 }
 .auth-form {
   display: flex;
