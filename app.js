@@ -1468,14 +1468,12 @@ function openPaymentRecording(student, month, forceEdit = false) {
   const paymentDateInput = document.getElementById('payment-date');
   const paymentDueDateInput = document.getElementById('payment-due-date');
 
-  paymentDateInput.value = payment.date || paymentDateVal;
-  paymentDueDateInput.value = payment.dueDate || calculatedDueDate;
+  paymentDateInput.value = formatDate(payment.date || paymentDateVal);
+  paymentDueDateInput.value = formatDate(payment.dueDate || calculatedDueDate);
 
   // Auto calculate due date when payment date changes if due date is empty or was auto-derived
   paymentDateInput.onchange = () => {
-    if (!paymentDueDateInput.value || paymentDueDateInput.value === calculatedDueDate) {
-      paymentDueDateInput.value = calculateDefaultDueDate(paymentDateInput.value);
-    }
+    paymentDueDateInput.value = formatDate(calculateDefaultDueDate(paymentDateInput.value));
   };
 
   document.getElementById('payment-mode').value = payment.mode || 'Cash';
@@ -1533,10 +1531,12 @@ function setupDialogs() {
     const month = document.getElementById('payment-month').value;
     const year = document.getElementById('payment-year').value;
     const amountVal = document.getElementById('payment-amount').value;
-    const date = document.getElementById('payment-date').value;
-    const dueDate = document.getElementById('payment-due-date').value;
+    const dateRaw = document.getElementById('payment-date').value;
+    const dueDateRaw = document.getElementById('payment-due-date').value;
     const mode = document.getElementById('payment-mode').value;
 
+    const date = parseISODate(dateRaw) ? formatDateToISO(parseISODate(dateRaw)) : dateRaw;
+    const dueDate = parseISODate(dueDateRaw) ? formatDateToISO(parseISODate(dueDateRaw)) : dueDateRaw;
     const amount = amountVal === '' ? 0 : Number(amountVal);
 
     const students = DB.getStudents();
@@ -1650,7 +1650,7 @@ function openStudentModal(student = null) {
     document.getElementById('student-phone').value = student.phone;
     document.getElementById('student-aadhar').value = student.aadhar;
     document.getElementById('student-address').value = student.address;
-    document.getElementById('student-joining').value = student.joining;
+    document.getElementById('student-joining').value = formatDate(student.joining);
     document.getElementById('student-branch').value = student.branch || 'SH Library';
     
     if (student.photo) {
@@ -1667,7 +1667,7 @@ function openStudentModal(student = null) {
     title.innerText = 'Onboard New Student';
     form.removeAttribute('data-mode');
     form.removeAttribute('data-id');
-    document.getElementById('student-joining').value = new Date().toISOString().split('T')[0];
+    document.getElementById('student-joining').value = formatDate(new Date().toISOString().split('T')[0]);
   }
 
   renderStep(1);
@@ -1906,7 +1906,6 @@ function fillVerificationStep() {
   const aadhar = document.getElementById('student-aadhar').value;
   const address = document.getElementById('student-address').value;
   const joining = document.getElementById('student-joining').value;
-  const dueDay = document.getElementById('student-due-day').value || '5';
   const branch = document.getElementById('student-branch').value;
   const photoPreview = document.getElementById('form-photo-preview');
 
@@ -2049,7 +2048,8 @@ function saveStudentRecord() {
   const phone = document.getElementById('student-phone').value;
   const aadhar = document.getElementById('student-aadhar').value;
   const address = document.getElementById('student-address').value;
-  const joining = document.getElementById('student-joining').value;
+  const joiningRaw = document.getElementById('student-joining').value;
+  const joining = parseISODate(joiningRaw) ? formatDateToISO(parseISODate(joiningRaw)) : joiningRaw;
   const branch = document.getElementById('student-branch').value;
   const photo = document.getElementById('form-photo-preview').src || '';
 
@@ -3010,7 +3010,7 @@ function applyCalendarSelection() {
   if (!dateStr) return;
 
   if (calendarActiveContext.targetInput) {
-    calendarActiveContext.targetInput.value = dateStr;
+    calendarActiveContext.targetInput.value = formatDate(dateStr);
     calendarActiveContext.targetInput.dispatchEvent(new Event('input', { bubbles: true }));
     calendarActiveContext.targetInput.dispatchEvent(new Event('change', { bubbles: true }));
   }

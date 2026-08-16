@@ -1,10 +1,11 @@
-const CACHE_NAME = 'sh-library-cache-v38';
+const CACHE_NAME = 'sh-library-cache-v39';
 const ASSETS = [
   './',
   './index.html',
   './app.css',
   './app.js',
   './manifest.json',
+  './f3.svg',
   './f2.png',
   './f1.png'
 ];
