@@ -975,9 +975,12 @@
                 <span class="error-text">Address details are required</span>
               </div>
 
-              <div class="text-field-container">
-                <input type="date" id="student-joining" name="joining" required placeholder=" ">
+              <div class="text-field-container custom-date-picker-container">
+                <input type="text" id="student-joining" name="joining" readonly required placeholder=" " class="custom-date-input" data-date-picker="true">
                 <label for="student-joining">Joining Date</label>
+                <button type="button" class="date-picker-icon-btn ripple" data-for="student-joining" aria-label="Pick joining date">
+                  <span class="material-symbols-outlined">calendar_month</span>
+                </button>
                 <span class="error-text">Select joining date</span>
               </div>
 
@@ -1133,14 +1136,40 @@
           <input type="hidden" id="payment-year">
 
           <div class="text-field-container">
-            <input type="number" id="payment-amount" required placeholder=" " value="1000">
+            <input type="number" id="payment-amount" required placeholder=" " min="0" step="any" value="1000">
             <label for="payment-amount">Payment Amount (₹)</label>
-            <span class="error-text">Amount must be greater than zero</span>
+            <span class="error-text">Amount must be a valid non-negative number</span>
           </div>
 
-          <div class="text-field-container">
-            <input type="date" id="payment-date" required placeholder=" ">
-            <label for="payment-date">Payment Date</label>
+          <!-- Quick Amount Selection Chips -->
+          <div class="amount-quick-presets-container">
+            <span class="body-small text-secondary font-medium">Quick Amount:</span>
+            <div class="amount-quick-presets" id="payment-amount-presets">
+              <button type="button" class="amount-preset-chip" data-amount="500">₹500</button>
+              <button type="button" class="amount-preset-chip" data-amount="700">₹700</button>
+              <button type="button" class="amount-preset-chip" data-amount="1000">₹1,000</button>
+              <button type="button" class="amount-preset-chip" data-amount="1200">₹1,200</button>
+              <button type="button" class="amount-preset-chip active" id="payment-full-preset" data-amount="rate">Full Fee</button>
+            </div>
+          </div>
+
+          <!-- Payment Date & Due Date Fields Grid -->
+          <div class="payment-dates-grid">
+            <div class="text-field-container custom-date-picker-container">
+              <input type="text" id="payment-date" readonly required placeholder=" " class="custom-date-input" data-date-picker="true">
+              <label for="payment-date">Payment Date</label>
+              <button type="button" class="date-picker-icon-btn ripple" data-for="payment-date" aria-label="Pick payment date" title="Select Payment Date">
+                <span class="material-symbols-outlined">calendar_month</span>
+              </button>
+            </div>
+
+            <div class="text-field-container custom-date-picker-container">
+              <input type="text" id="payment-due-date" readonly placeholder=" " class="custom-date-input" data-date-picker="true">
+              <label for="payment-due-date">Due Date</label>
+              <button type="button" class="date-picker-icon-btn ripple" data-for="payment-due-date" aria-label="Pick due date" title="Select Due Date">
+                <span class="material-symbols-outlined">event_upcoming</span>
+              </button>
+            </div>
           </div>
 
           <div class="select-field-container">
@@ -1195,7 +1224,6 @@
             <tr>
               <th>Seat</th>
               <th>Student Name</th>
-              <th>Due Date</th>
               <th>Status</th>
               <th>Action</th>
             </tr>
@@ -1274,6 +1302,77 @@
   <div id="snackbar" class="snackbar elevation-2">
     <span class="snackbar-text body-medium" id="snackbar-text"></span>
     <button class="snackbar-action label-large hidden" id="snackbar-action-btn">Undo</button>
+  </div>
+
+  <!-- ================= STYLISH CALENDAR PICKER MODAL ================= -->
+  <div id="stylish-calendar-modal" class="dialog-overlay calendar-overlay hidden" aria-hidden="true">
+    <div class="calendar-card elevation-4" role="dialog" aria-modal="true">
+      <!-- Calendar Header Banner -->
+      <div class="calendar-header-banner">
+        <div class="calendar-header-meta">
+          <span class="label-medium calendar-context-label" id="calendar-context-label">Select Date</span>
+          <h2 class="title-large calendar-selected-display" id="calendar-selected-display">Fri, Jan 16, 2026</h2>
+        </div>
+        <button type="button" class="icon-button icon-button-subtle ripple" id="close-calendar-modal-btn" aria-label="Close calendar">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <!-- Quick Preset Chips -->
+      <div class="calendar-presets-bar scrollable-x" id="calendar-presets-bar">
+        <button type="button" class="calendar-preset-chip" data-preset="today">Today</button>
+        <button type="button" class="calendar-preset-chip" data-preset="1st">1st of Month</button>
+        <button type="button" class="calendar-preset-chip" data-preset="5th">5th of Month</button>
+        <button type="button" class="calendar-preset-chip" data-preset="10th">10th of Month</button>
+        <button type="button" class="calendar-preset-chip" data-preset="15th">15th of Month</button>
+        <button type="button" class="calendar-preset-chip" data-preset="end">End of Month</button>
+      </div>
+
+      <!-- Navigation & Month/Year Switcher -->
+      <div class="calendar-nav-bar">
+        <button type="button" class="icon-button ripple" id="calendar-prev-month-btn" aria-label="Previous month">
+          <span class="material-symbols-outlined">chevron_left</span>
+        </button>
+        
+        <div class="calendar-month-year-dropdowns">
+          <select id="calendar-month-select" class="calendar-select" aria-label="Select month">
+            <!-- Injected by JS -->
+          </select>
+          <select id="calendar-year-select" class="calendar-select" aria-label="Select year">
+            <!-- Injected by JS -->
+          </select>
+        </div>
+
+        <button type="button" class="icon-button ripple" id="calendar-next-month-btn" aria-label="Next month">
+          <span class="material-symbols-outlined">chevron_right</span>
+        </button>
+      </div>
+
+      <!-- Day of Week Headers -->
+      <div class="calendar-weekdays-grid">
+        <span class="calendar-weekday">Su</span>
+        <span class="calendar-weekday">Mo</span>
+        <span class="calendar-weekday">Tu</span>
+        <span class="calendar-weekday">We</span>
+        <span class="calendar-weekday">Th</span>
+        <span class="calendar-weekday">Fr</span>
+        <span class="calendar-weekday">Sa</span>
+      </div>
+
+      <!-- Dates Grid -->
+      <div class="calendar-days-grid" id="calendar-days-grid">
+        <!-- Injected dynamically by JS -->
+      </div>
+
+      <!-- Calendar Actions Footer -->
+      <div class="calendar-actions">
+        <button type="button" class="btn btn-text ripple" id="calendar-cancel-btn">Cancel</button>
+        <button type="button" class="btn btn-primary ripple" id="calendar-confirm-btn">
+          <span class="material-symbols-outlined btn-icon">done</span>
+          <span>Set Date</span>
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- Firebase App & Services Compat SDKs -->

@@ -253,6 +253,7 @@ function initApp() {
   setupFeesGrid();
   setupSearchFilters();
   setupProfileForm();
+  initStylishCalendar();
   
   // Initialize Firebase and setup auth listener
   const firebaseConnected = initFirebase();
@@ -698,12 +699,14 @@ function getStudentMonthStatus(student, yearStr, month) {
 
   // 1. If explicitly recorded as Paid by user
   if (payment && payment.status === 'Paid') {
-    return { status: 'Paid', amount: parseInt(payment.amount || studentRate, 10), isPaid: true, isDue: false, isUpcoming: false };
+    const amt = (payment.amount !== undefined && payment.amount !== null && !isNaN(Number(payment.amount))) ? Number(payment.amount) : studentRate;
+    return { status: 'Paid', amount: amt, isPaid: true, isDue: false, isUpcoming: false };
   }
 
   // 2. If explicitly recorded as Due by user
   if (payment && payment.status === 'Due') {
-    return { status: 'Due', amount: parseInt(payment.amount || studentRate, 10), isPaid: false, isDue: true, isUpcoming: false };
+    const amt = (payment.amount !== undefined && payment.amount !== null && !isNaN(Number(payment.amount))) ? Number(payment.amount) : studentRate;
+    return { status: 'Due', amount: amt, isPaid: false, isDue: true, isUpcoming: false };
   }
 
   const { year: joinYear, monthIndex: joinMonthIdx } = getStudentJoiningInfo(student);
@@ -1329,7 +1332,18 @@ function renderMiniLedger(student) {
 function openPaymentRecording(student, month) {
   const studentRate = getStudentMonthlyRate(student);
   const payments = student.payments[currentFeesYear] || {};
-  const payment = payments[month] || { status: 'Due', amount: studentRate, date: new Date().toISOString().split('T')[0], mode: 'Cash' };
+  const monthIdx = MONTHS_LIST.indexOf(month);
+  const monthNum = String(monthIdx >= 0 ? monthIdx + 1 : 1).padStart(2, '0');
+  const dueDayNum = String(student.dueDay || '5').padStart(2, '0');
+  const calculatedDueDate = `${currentFeesYear}-${monthNum}-${dueDayNum}`;
+
+  const payment = payments[month] || {
+    status: 'Due',
+    amount: studentRate,
+    date: new Date().toISOString().split('T')[0],
+    dueDate: calculatedDueDate,
+    mode: 'Cash'
+  };
 
   // Set Sheet fields
   document.getElementById('payment-student-id').value = student.id;
@@ -1339,8 +1353,51 @@ function openPaymentRecording(student, month) {
   document.getElementById('payment-month').value = month;
   document.getElementById('payment-year').value = currentFeesYear;
 
-  document.getElementById('payment-amount').value = payment.amount || studentRate;
-  document.getElementById('payment-date').value = payment.date || new Date().toISOString().split('T')[0];
+  // Flexible Amount field
+  const initialAmount = (payment.amount !== undefined && payment.amount !== null && !isNaN(Number(payment.amount))) ? payment.amount : studentRate;
+  const amountInput = document.getElementById('payment-amount');
+  amountInput.value = initialAmount;
+
+  // Setup Full Fee preset chip
+  const fullPreset = document.getElementById('payment-full-preset');
+  if (fullPreset) {
+    fullPreset.innerText = `Full (₹${studentRate})`;
+    fullPreset.setAttribute('data-amount', studentRate);
+  }
+
+  // Active chip sync
+  const presetChips = document.querySelectorAll('.amount-preset-chip');
+  const syncActivePreset = (val) => {
+    presetChips.forEach(chip => {
+      const chipAmt = chip.getAttribute('data-amount');
+      if (String(chipAmt) === String(val) || (chip.id === 'payment-full-preset' && String(val) === String(studentRate))) {
+        chip.classList.add('active');
+      } else {
+        chip.classList.remove('active');
+      }
+    });
+  };
+  syncActivePreset(initialAmount);
+
+  presetChips.forEach(chip => {
+    chip.onclick = () => {
+      const amt = chip.getAttribute('data-amount');
+      amountInput.value = amt === 'rate' ? studentRate : amt;
+      syncActivePreset(amountInput.value);
+    };
+  });
+
+  amountInput.oninput = () => {
+    syncActivePreset(amountInput.value);
+  };
+
+  // Payment Date & Due Date fields
+  const paymentDateInput = document.getElementById('payment-date');
+  const paymentDueDateInput = document.getElementById('payment-due-date');
+
+  paymentDateInput.value = payment.date || new Date().toISOString().split('T')[0];
+  paymentDueDateInput.value = payment.dueDate || calculatedDueDate;
+
   document.getElementById('payment-mode').value = payment.mode || 'Cash';
   document.getElementById('payment-status').value = payment.status || 'Due';
 
@@ -1381,16 +1438,25 @@ function setupDialogs() {
     const studentId = document.getElementById('payment-student-id').value;
     const month = document.getElementById('payment-month').value;
     const year = document.getElementById('payment-year').value;
-    const amount = document.getElementById('payment-amount').value;
+    const amountVal = document.getElementById('payment-amount').value;
     const date = document.getElementById('payment-date').value;
+    const dueDate = document.getElementById('payment-due-date').value;
     const mode = document.getElementById('payment-mode').value;
     const status = document.getElementById('payment-status').value;
+
+    const amount = amountVal === '' ? 0 : Number(amountVal);
 
     const students = DB.getStudents();
     const student = students.find(s => s.id === studentId);
     if (student) {
       if (!student.payments[year]) student.payments[year] = {};
-      student.payments[year][month] = { status, amount: parseInt(amount, 10), date, mode };
+      student.payments[year][month] = {
+        status,
+        amount: isNaN(amount) ? 0 : amount,
+        date: date || '',
+        dueDate: dueDate || '',
+        mode: mode || 'Cash'
+      };
       DB.saveStudent(student);
       
       showSnackbar(`Saved payment details for ${student.name}`);
@@ -2121,14 +2187,20 @@ function openBatchLedgerDialog(month) {
 
   students.forEach(student => {
     const monthInfo = getStudentMonthStatus(student, currentFeesYear, month);
+    const payments = (student.payments && student.payments[currentFeesYear]) || {};
+    const payment = payments[month];
     const statusText = monthInfo.status;
     const statusClass = monthInfo.status === 'Paid' ? 'chip-success' : (monthInfo.status === 'Due' ? 'chip-error' : 'chip-neutral');
+
+    const paidSubtitle = (payment && payment.date && monthInfo.status === 'Paid') ? `<div class="body-small text-secondary" style="font-size:11px; margin-top:2px;">Paid: ${formatDate(payment.date)}</div>` : '';
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td><span class="label-large font-bold">${student.seat || '--'}</span></td>
-      <td><span class="body-large font-bold">${student.name}</span></td>
-      <td><span class="chip chip-neutral label-medium" style="background-color: var(--md-sys-color-surface-container-high);">${student.dueDay || '5'}th of month</span></td>
+      <td>
+        <span class="body-large font-bold">${student.name}</span>
+        ${paidSubtitle}
+      </td>
       <td><span class="chip ${statusClass} label-medium">${statusText}</span></td>
       <td>
         <button class="btn btn-tonal btn-small ripple record-ledger-btn" title="Record Payment">
@@ -2166,6 +2238,7 @@ function renderTransactionsLog() {
           month,
           amount: payments[month].amount,
           date: payments[month].date,
+          dueDate: payments[month].dueDate,
           mode: payments[month].mode
         });
       }
@@ -2173,7 +2246,7 @@ function renderTransactionsLog() {
   });
 
   // Sort by date descending
-  list.sort((a, b) => b.date.localeCompare(a.date));
+  list.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
   if (list.length === 0) {
     container.innerHTML = '<li class="empty-log-state body-medium text-secondary">No payments registered for selected year.</li>';
@@ -2181,10 +2254,11 @@ function renderTransactionsLog() {
     list.slice(0, 5).forEach(item => {
       const li = document.createElement('li');
       li.className = 'transaction-item';
+      const dueSnippet = item.dueDate ? ` • Due: ${formatDate(item.dueDate)}` : '';
       li.innerHTML = `
         <div class="transaction-meta">
           <span class="title-medium">${item.student} (Seat ${item.seat})</span>
-          <span class="body-small text-secondary">Period: ${item.month} • Mode: ${item.mode} • Paid: ${formatDate(item.date)}</span>
+          <span class="body-small text-secondary">Period: ${item.month} • Mode: ${item.mode} • Paid: ${formatDate(item.date)}${dueSnippet}</span>
         </div>
         <span class="title-medium text-success">+₹${item.amount}</span>
       `;
@@ -2502,4 +2576,338 @@ function formatAadhar(aadharStr) {
 function validateEmail(email) {
   const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return re.test(email);
+}
+
+// ==========================================================================
+// 13. STYLISH INTERACTIVE CALENDAR ENGINE
+// ==========================================================================
+let calendarActiveContext = {
+  selectedDate: null,
+  viewYear: 2026,
+  viewMonth: 0,
+  targetInput: null,
+  title: 'Select Date',
+  onSelect: null
+};
+
+const CAL_DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const CAL_MONTH_NAMES = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
+
+function initStylishCalendar() {
+  const modal = document.getElementById('stylish-calendar-modal');
+  const closeBtn = document.getElementById('close-calendar-modal-btn');
+  const cancelBtn = document.getElementById('calendar-cancel-btn');
+  const confirmBtn = document.getElementById('calendar-confirm-btn');
+  const prevBtn = document.getElementById('calendar-prev-month-btn');
+  const nextBtn = document.getElementById('calendar-next-month-btn');
+  const monthSelect = document.getElementById('calendar-month-select');
+  const yearSelect = document.getElementById('calendar-year-select');
+  const presetsBar = document.getElementById('calendar-presets-bar');
+
+  if (!modal) return;
+
+  // Populate month dropdown
+  if (monthSelect) {
+    monthSelect.innerHTML = '';
+    CAL_MONTH_NAMES.forEach((m, idx) => {
+      const opt = document.createElement('option');
+      opt.value = idx;
+      opt.innerText = m;
+      monthSelect.appendChild(opt);
+    });
+
+    monthSelect.addEventListener('change', (e) => {
+      calendarActiveContext.viewMonth = parseInt(e.target.value, 10);
+      renderCalendarGrid();
+    });
+  }
+
+  // Populate year dropdown (2020 to 2035)
+  if (yearSelect) {
+    yearSelect.innerHTML = '';
+    for (let y = 2020; y <= 2035; y++) {
+      const opt = document.createElement('option');
+      opt.value = y;
+      opt.innerText = y;
+      yearSelect.appendChild(opt);
+    }
+
+    yearSelect.addEventListener('change', (e) => {
+      calendarActiveContext.viewYear = parseInt(e.target.value, 10);
+      renderCalendarGrid();
+    });
+  }
+
+  // Close handlers
+  const closeCalendar = () => {
+    modal.classList.add('hidden');
+  };
+
+  if (closeBtn) closeBtn.addEventListener('click', closeCalendar);
+  if (cancelBtn) cancelBtn.addEventListener('click', closeCalendar);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeCalendar();
+  });
+
+  // Month navigation arrows
+  if (prevBtn) {
+    prevBtn.addEventListener('click', () => {
+      calendarActiveContext.viewMonth--;
+      if (calendarActiveContext.viewMonth < 0) {
+        calendarActiveContext.viewMonth = 11;
+        calendarActiveContext.viewYear--;
+      }
+      renderCalendarGrid();
+    });
+  }
+
+  if (nextBtn) {
+    nextBtn.addEventListener('click', () => {
+      calendarActiveContext.viewMonth++;
+      if (calendarActiveContext.viewMonth > 11) {
+        calendarActiveContext.viewMonth = 0;
+        calendarActiveContext.viewYear++;
+      }
+      renderCalendarGrid();
+    });
+  }
+
+  // Presets Bar click handler
+  if (presetsBar) {
+    presetsBar.addEventListener('click', (e) => {
+      const btn = e.target.closest('.calendar-preset-chip');
+      if (!btn) return;
+      const preset = btn.getAttribute('data-preset');
+      handleCalendarPreset(preset);
+    });
+  }
+
+  // Confirm selection
+  if (confirmBtn) {
+    confirmBtn.addEventListener('click', () => {
+      applyCalendarSelection();
+      closeCalendar();
+    });
+  }
+
+  // Global delegate: open calendar on date picker clicks
+  document.addEventListener('click', (e) => {
+    const iconBtn = e.target.closest('.date-picker-icon-btn');
+    if (iconBtn) {
+      const targetId = iconBtn.getAttribute('data-for');
+      const input = document.getElementById(targetId);
+      if (input) {
+        const label = input.closest('.custom-date-picker-container')?.querySelector('label')?.innerText || 'Select Date';
+        openStylishCalendar({
+          initialDate: input.value,
+          targetInputId: targetId,
+          title: label
+        });
+      }
+      return;
+    }
+
+    const input = e.target.closest('input[data-date-picker="true"]');
+    if (input) {
+      const label = input.closest('.custom-date-picker-container')?.querySelector('label')?.innerText || 'Select Date';
+      openStylishCalendar({
+        initialDate: input.value,
+        targetInputId: input.id,
+        title: label
+      });
+    }
+  });
+}
+
+function openStylishCalendar({ initialDate, targetInputId, title, onSelect }) {
+  const modal = document.getElementById('stylish-calendar-modal');
+  if (!modal) return;
+
+  const targetInput = targetInputId ? document.getElementById(targetInputId) : null;
+  let dateVal = initialDate || (targetInput ? targetInput.value : '');
+
+  let d = parseISODate(dateVal) || new Date();
+  
+  calendarActiveContext.selectedDate = formatDateToISO(d);
+  calendarActiveContext.viewYear = d.getFullYear();
+  calendarActiveContext.viewMonth = d.getMonth();
+  calendarActiveContext.targetInput = targetInput;
+  calendarActiveContext.title = title || 'Select Date';
+  calendarActiveContext.onSelect = onSelect;
+
+  const labelElem = document.getElementById('calendar-context-label');
+  if (labelElem) labelElem.innerText = calendarActiveContext.title;
+  
+  renderCalendarGrid();
+  modal.classList.remove('hidden');
+}
+
+function parseISODate(str) {
+  if (!str) return null;
+  const parts = String(str).trim().split('-');
+  if (parts.length === 3) {
+    const y = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10) - 1;
+    const d = parseInt(parts[2], 10);
+    if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+      return new Date(y, m, d);
+    }
+  }
+  const timestamp = Date.parse(str);
+  return isNaN(timestamp) ? null : new Date(timestamp);
+}
+
+function formatDateToISO(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+function formatDisplayDate(date) {
+  const dayName = CAL_DAY_NAMES[date.getDay()].substring(0, 3);
+  const monthName = CAL_MONTH_NAMES[date.getMonth()].substring(0, 3);
+  const day = date.getDate();
+  const year = date.getFullYear();
+  return `${dayName}, ${monthName} ${day}, ${year}`;
+}
+
+function renderCalendarGrid() {
+  const year = calendarActiveContext.viewYear;
+  const month = calendarActiveContext.viewMonth;
+
+  // Sync dropdowns
+  const monthSelect = document.getElementById('calendar-month-select');
+  const yearSelect = document.getElementById('calendar-year-select');
+  if (monthSelect) monthSelect.value = month;
+  if (yearSelect) yearSelect.value = year;
+
+  // Selected date display
+  const selObj = parseISODate(calendarActiveContext.selectedDate) || new Date();
+  const displayElem = document.getElementById('calendar-selected-display');
+  if (displayElem) displayElem.innerText = formatDisplayDate(selObj);
+
+  // Build grid
+  const daysGrid = document.getElementById('calendar-days-grid');
+  if (!daysGrid) return;
+  daysGrid.innerHTML = '';
+
+  const firstDayIndex = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+  // Previous month trailing days
+  for (let i = firstDayIndex - 1; i >= 0; i--) {
+    const prevDay = daysInPrevMonth - i;
+    const prevMonthIdx = month === 0 ? 11 : month - 1;
+    const prevYear = month === 0 ? year - 1 : year;
+    const dateISO = `${prevYear}-${String(prevMonthIdx + 1).padStart(2, '0')}-${String(prevDay).padStart(2, '0')}`;
+
+    const cell = createCalendarDayCell(prevDay, dateISO, true);
+    daysGrid.appendChild(cell);
+  }
+
+  // Current month days
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dateISO = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const cell = createCalendarDayCell(day, dateISO, false);
+    daysGrid.appendChild(cell);
+  }
+
+  // Next month leading days
+  const totalRendered = firstDayIndex + daysInMonth;
+  const remainingCells = (totalRendered % 7 === 0) ? 0 : 7 - (totalRendered % 7);
+  for (let nextDay = 1; nextDay <= remainingCells; nextDay++) {
+    const nextMonthIdx = month === 11 ? 0 : month + 1;
+    const nextYear = month === 11 ? year + 1 : year;
+    const dateISO = `${nextYear}-${String(nextMonthIdx + 1).padStart(2, '0')}-${String(nextDay).padStart(2, '0')}`;
+
+    const cell = createCalendarDayCell(nextDay, dateISO, true);
+    daysGrid.appendChild(cell);
+  }
+}
+
+function createCalendarDayCell(dayNum, dateISO, isOtherMonth) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'calendar-day-cell ripple';
+  btn.innerText = dayNum;
+  btn.setAttribute('data-date', dateISO);
+
+  const todayISO = formatDateToISO(new Date());
+  const selectedISO = calendarActiveContext.selectedDate;
+
+  if (isOtherMonth) {
+    btn.classList.add('is-other-month');
+  } else {
+    btn.classList.add('is-current-month');
+  }
+
+  if (dateISO === todayISO) {
+    btn.classList.add('is-today');
+  }
+
+  if (dateISO === selectedISO) {
+    btn.classList.add('is-selected');
+  }
+
+  btn.addEventListener('click', () => {
+    calendarActiveContext.selectedDate = dateISO;
+    const selD = parseISODate(dateISO);
+    if (selD) {
+      calendarActiveContext.viewYear = selD.getFullYear();
+      calendarActiveContext.viewMonth = selD.getMonth();
+    }
+    renderCalendarGrid();
+  });
+
+  return btn;
+}
+
+function handleCalendarPreset(preset) {
+  const year = calendarActiveContext.viewYear;
+  const month = calendarActiveContext.viewMonth;
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  let targetDate = null;
+  const now = new Date();
+
+  if (preset === 'today') {
+    targetDate = now;
+  } else if (preset === '1st') {
+    targetDate = new Date(year, month, 1);
+  } else if (preset === '5th') {
+    targetDate = new Date(year, month, Math.min(5, daysInMonth));
+  } else if (preset === '10th') {
+    targetDate = new Date(year, month, Math.min(10, daysInMonth));
+  } else if (preset === '15th') {
+    targetDate = new Date(year, month, Math.min(15, daysInMonth));
+  } else if (preset === 'end') {
+    targetDate = new Date(year, month, daysInMonth);
+  }
+
+  if (targetDate) {
+    calendarActiveContext.selectedDate = formatDateToISO(targetDate);
+    calendarActiveContext.viewYear = targetDate.getFullYear();
+    calendarActiveContext.viewMonth = targetDate.getMonth();
+    renderCalendarGrid();
+  }
+}
+
+function applyCalendarSelection() {
+  const dateStr = calendarActiveContext.selectedDate;
+  if (!dateStr) return;
+
+  if (calendarActiveContext.targetInput) {
+    calendarActiveContext.targetInput.value = dateStr;
+    calendarActiveContext.targetInput.dispatchEvent(new Event('input', { bubbles: true }));
+    calendarActiveContext.targetInput.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  if (typeof calendarActiveContext.onSelect === 'function') {
+    calendarActiveContext.onSelect(dateStr);
+  }
 }
