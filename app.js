@@ -1326,23 +1326,60 @@ function renderMiniLedger(student) {
 // ==========================================================================
 // 7. RECORD PAYMENTS SHEET / DIALOGS
 // ==========================================================================
-function openPaymentRecording(student, month) {
+function calculateDefaultDueDate(paymentDateStr) {
+  if (!paymentDateStr) return '';
+  const d = parseISODate(paymentDateStr);
+  if (!d) return '';
+  d.setMonth(d.getMonth() + 1);
+  return formatDateToISO(d);
+}
+
+function refreshAllViews(studentId = null) {
+  // 1. Refresh Students directory list
+  renderStudentsList();
+
+  // 2. Refresh active student details pane
+  const sid = studentId || selectedStudentId;
+  if (sid) {
+    selectStudent(sid);
+  }
+
+  // 3. Refresh Dashboard statistics and student overview
+  loadDashboardData();
+
+  // 4. Refresh Fees workspace and ledger
+  updateFeesLedger();
+
+  // 5. If Batch ledger dialog is open, refresh its table too
+  const batchDialog = document.getElementById('batch-payment-dialog');
+  if (batchDialog && !batchDialog.classList.contains('hidden')) {
+    const currentMonth = document.getElementById('payment-month')?.value;
+    if (currentMonth) {
+      openBatchLedgerDialog(currentMonth);
+    }
+  }
+
+  // 6. Refresh Notifications
+  renderNotifications();
+}
+
+function openPaymentRecording(student, month, forceEdit = false) {
   const studentRate = getStudentMonthlyRate(student);
   const payments = student.payments[currentFeesYear] || {};
-  const monthIdx = MONTHS_LIST.indexOf(month);
-  const monthNum = String(monthIdx >= 0 ? monthIdx + 1 : 1).padStart(2, '0');
-  const dueDayNum = String(student.dueDay || '5').padStart(2, '0');
-  const calculatedDueDate = `${currentFeesYear}-${monthNum}-${dueDayNum}`;
-
+  
+  const hasExistingRecord = !!(payments[month] && (payments[month].status === 'Paid' || payments[month].status === 'Due'));
   const payment = payments[month] || {
     status: 'Due',
     amount: studentRate,
     date: new Date().toISOString().split('T')[0],
-    dueDate: calculatedDueDate,
+    dueDate: '',
     mode: 'Cash'
   };
 
-  // Set Sheet fields
+  const paymentDateVal = payment.date || new Date().toISOString().split('T')[0];
+  const calculatedDueDate = payment.dueDate || calculateDefaultDueDate(paymentDateVal);
+
+  // Set Sheet meta
   document.getElementById('payment-student-id').value = student.id;
   document.getElementById('payment-student-name').innerText = student.name;
   document.getElementById('payment-student-seat').innerText = `Seat ${student.seat || '--'}`;
@@ -1350,7 +1387,53 @@ function openPaymentRecording(student, month) {
   document.getElementById('payment-month').value = month;
   document.getElementById('payment-year').value = currentFeesYear;
 
-  // Flexible Amount field
+  // VIEW MODE vs EDIT MODE
+  const viewContainer = document.getElementById('payment-view-mode');
+  const editForm = document.getElementById('payment-form');
+  const sheetTitle = document.getElementById('payment-sheet-title');
+  const cancelEditBtn = document.getElementById('cancel-edit-payment-btn');
+
+  const showViewMode = () => {
+    sheetTitle.innerText = 'Payment Details';
+    viewContainer.classList.remove('hidden');
+    editForm.classList.add('hidden');
+
+    const amt = (payment.amount !== undefined && payment.amount !== null && !isNaN(Number(payment.amount))) ? payment.amount : studentRate;
+    document.getElementById('view-payment-amount').innerText = `₹${amt.toLocaleString('en-IN')}`;
+
+    const statusBadge = document.getElementById('view-payment-status');
+    const modeBadge = document.getElementById('view-payment-mode');
+    
+    statusBadge.innerText = payment.status || 'Paid';
+    statusBadge.className = `chip ${payment.status === 'Paid' ? 'chip-success' : (payment.status === 'Due' ? 'chip-error' : 'chip-neutral')} label-medium`;
+    modeBadge.innerText = payment.mode || 'Cash';
+
+    // From When to When
+    const fromDateDisplay = formatDate(payment.date || paymentDateVal);
+    const toDateDisplay = formatDate(payment.dueDate || calculatedDueDate);
+
+    document.getElementById('view-payment-from-date').innerText = fromDateDisplay;
+    document.getElementById('view-payment-to-date').innerText = toDateDisplay;
+
+    const durationText = document.getElementById('view-payment-duration-text');
+    if (durationText) {
+      durationText.innerText = `Covered from ${fromDateDisplay} till ${toDateDisplay}`;
+    }
+  };
+
+  const showEditMode = (isNew = false) => {
+    sheetTitle.innerText = isNew ? 'Record Payment' : 'Edit Payment Details';
+    viewContainer.classList.add('hidden');
+    editForm.classList.remove('hidden');
+
+    if (hasExistingRecord) {
+      cancelEditBtn.classList.remove('hidden');
+    } else {
+      cancelEditBtn.classList.add('hidden');
+    }
+  };
+
+  // Populate form fields
   const initialAmount = (payment.amount !== undefined && payment.amount !== null && !isNaN(Number(payment.amount))) ? payment.amount : studentRate;
   const amountInput = document.getElementById('payment-amount');
   amountInput.value = initialAmount;
@@ -1392,18 +1475,40 @@ function openPaymentRecording(student, month) {
   const paymentDateInput = document.getElementById('payment-date');
   const paymentDueDateInput = document.getElementById('payment-due-date');
 
-  paymentDateInput.value = payment.date || new Date().toISOString().split('T')[0];
+  paymentDateInput.value = payment.date || paymentDateVal;
   paymentDueDateInput.value = payment.dueDate || calculatedDueDate;
 
+  // Auto calculate due date when payment date changes if due date is empty or was auto-derived
+  paymentDateInput.onchange = () => {
+    if (!paymentDueDateInput.value || paymentDueDateInput.value === calculatedDueDate) {
+      paymentDueDateInput.value = calculateDefaultDueDate(paymentDateInput.value);
+    }
+  };
+
   document.getElementById('payment-mode').value = payment.mode || 'Cash';
-  document.getElementById('payment-status').value = payment.status || 'Due';
+  document.getElementById('payment-status').value = payment.status || 'Paid';
 
   const deleteBtn = document.getElementById('delete-payment-btn');
-  if (payments[month]) {
+  if (hasExistingRecord) {
     deleteBtn.classList.remove('hidden');
   } else {
     deleteBtn.classList.add('hidden');
   }
+
+  // Determine initial mode
+  if (hasExistingRecord && !forceEdit) {
+    showViewMode();
+  } else {
+    showEditMode(!hasExistingRecord);
+  }
+
+  // Button switches
+  document.getElementById('switch-to-edit-payment-btn').onclick = () => {
+    showEditMode(false);
+  };
+  cancelEditBtn.onclick = () => {
+    showViewMode();
+  };
 
   // Open overlay bottom-sheet
   const sheet = document.getElementById('payment-sheet');
@@ -1459,15 +1564,13 @@ function setupDialogs() {
       showSnackbar(`Saved payment details for ${student.name}`);
       closeOverlay();
       
-      // Sync active view components
-      if (currentView === 'students') selectStudent(studentId);
-      if (currentView === 'fees') updateFeesLedger();
-      if (currentView === 'dashboard') loadDashboardData();
+      // Instant synchronized refresh across all active views
+      refreshAllViews(studentId);
     }
   });
 
-  // Delete status
-  document.getElementById('delete-payment-btn').addEventListener('click', () => {
+  // Delete status handler
+  const handleDeletePayment = () => {
     const studentId = document.getElementById('payment-student-id').value;
     const month = document.getElementById('payment-month').value;
     const year = document.getElementById('payment-year').value;
@@ -1480,10 +1583,13 @@ function setupDialogs() {
       showSnackbar(`Reset status for ${student.name}`);
       closeOverlay();
       
-      if (currentView === 'students') selectStudent(studentId);
-      if (currentView === 'fees') updateFeesLedger();
+      // Instant synchronized refresh across all views
+      refreshAllViews(studentId);
     }
-  });
+  };
+
+  document.getElementById('delete-payment-btn').onclick = handleDeletePayment;
+  document.getElementById('delete-payment-btn-view').onclick = handleDeletePayment;
 
   // Mobile detail back button routing
   document.getElementById('detail-back-btn').addEventListener('click', () => {

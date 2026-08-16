@@ -2242,6 +2242,99 @@ a {
   margin-top: 8px;
 }
 
+/* Payment View / Summary Mode ("From When to When") */
+.payment-view-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: fadeIn 200ms ease;
+}
+.payment-edit-container {
+  animation: fadeIn 200ms ease;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.payment-summary-card {
+  padding: 18px 20px;
+  border-radius: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid rgba(26, 115, 232, 0.2);
+}
+.payment-summary-top {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.payment-summary-top h2 {
+  margin: 0;
+  font-family: var(--font-display);
+}
+.payment-summary-badge {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-end;
+}
+
+/* Payment Coverage Period ("From When to When") */
+.payment-period-card {
+  background-color: var(--md-sys-color-surface-container-low);
+  border: 1px solid var(--md-sys-color-surface-variant);
+  border-radius: 18px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.period-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--md-sys-color-on-surface);
+}
+.period-dates-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--md-sys-color-surface-container-lowest);
+  padding: 14px 18px;
+  border-radius: 14px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  gap: 12px;
+}
+.period-date-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.period-arrow {
+  color: var(--md-sys-color-primary);
+  font-size: 22px;
+  flex-shrink: 0;
+}
+.period-footer-tag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #198754;
+  background-color: rgba(25, 135, 84, 0.12);
+  padding: 6px 12px;
+  border-radius: 20px;
+  width: fit-content;
+}
+.payment-view-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 6px;
+}
+
 /* Quick Amount Presets in Payment Sheet */
 .amount-quick-presets-container {
   display: flex;

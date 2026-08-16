@@ -1116,7 +1116,56 @@
           </div>
         </div>
 
-        <form id="payment-form">
+        <!-- 1. VIEW MODE (Summary & Validity Duration "From When to When") -->
+        <div id="payment-view-mode" class="payment-view-container hidden">
+          <div class="payment-summary-card tonal-primary">
+            <div class="payment-summary-top">
+              <span class="label-medium opacity-8">Amount</span>
+              <h2 class="display-small font-bold" id="view-payment-amount">₹1,000</h2>
+            </div>
+            <div class="payment-summary-badge">
+              <span class="chip chip-success label-medium" id="view-payment-status">Paid</span>
+              <span class="chip chip-neutral label-medium" id="view-payment-mode">UPI</span>
+            </div>
+          </div>
+
+          <!-- Validity Period Box ("From When to When") -->
+          <div class="payment-period-card">
+            <div class="period-header">
+              <span class="material-symbols-outlined text-primary">date_range</span>
+              <span class="label-large font-bold">Payment Coverage Period</span>
+            </div>
+            <div class="period-dates-row">
+              <div class="period-date-item">
+                <span class="body-small text-secondary">From (Payment Date)</span>
+                <span class="title-medium font-bold text-primary" id="view-payment-from-date">05 Jan 2026</span>
+              </div>
+              <span class="material-symbols-outlined period-arrow">arrow_forward</span>
+              <div class="period-date-item">
+                <span class="body-small text-secondary">Till (Valid Till / Due)</span>
+                <span class="title-medium font-bold text-primary" id="view-payment-to-date">05 Feb 2026</span>
+              </div>
+            </div>
+            <div class="period-footer-tag" id="view-payment-duration-tag">
+              <span class="material-symbols-outlined" style="font-size: 16px;">verified</span>
+              <span id="view-payment-duration-text">Active Fee Cycle</span>
+            </div>
+          </div>
+
+          <div class="payment-view-actions">
+            <button type="button" id="switch-to-edit-payment-btn" class="btn btn-primary ripple flex-grow">
+              <span class="material-symbols-outlined btn-icon">edit</span>
+              <span class="label-large">Edit Payment Details</span>
+            </button>
+            <button type="button" id="delete-payment-btn-view" class="btn btn-outlined text-error ripple">
+              <span class="material-symbols-outlined btn-icon">delete</span>
+              <span class="label-large">Reset</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. EDIT / ENTRY MODE (Form) -->
+        <form id="payment-form" class="payment-edit-container">
           <!-- Hidden inputs for mapping -->
           <input type="hidden" id="payment-student-id">
           <input type="hidden" id="payment-month">
@@ -1144,7 +1193,7 @@
           <div class="payment-dates-grid">
             <div class="text-field-container custom-date-picker-container">
               <input type="text" id="payment-date" readonly required placeholder=" " class="custom-date-input" data-date-picker="true">
-              <label for="payment-date">Payment Date</label>
+              <label for="payment-date">Payment Date (From)</label>
               <button type="button" class="date-picker-icon-btn ripple" data-for="payment-date" aria-label="Pick payment date" title="Select Payment Date">
                 <span class="material-symbols-outlined">calendar_month</span>
               </button>
@@ -1152,7 +1201,7 @@
 
             <div class="text-field-container custom-date-picker-container">
               <input type="text" id="payment-due-date" readonly placeholder=" " class="custom-date-input" data-date-picker="true">
-              <label for="payment-due-date">Due Date</label>
+              <label for="payment-due-date">Valid Till / Due (To)</label>
               <button type="button" class="date-picker-icon-btn ripple" data-for="payment-due-date" aria-label="Pick due date" title="Select Due Date">
                 <span class="material-symbols-outlined">event_upcoming</span>
               </button>
@@ -1179,6 +1228,9 @@
           </div>
 
           <div class="payment-sheet-actions">
+            <button type="button" id="cancel-edit-payment-btn" class="btn btn-outlined ripple hidden">
+              <span class="label-large">Back</span>
+            </button>
             <button type="button" id="delete-payment-btn" class="btn btn-outlined text-error ripple hidden">
               <span class="material-symbols-outlined btn-icon">delete</span>
               <span class="label-large">Reset Status</span>
