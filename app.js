@@ -1648,7 +1648,7 @@ function openStudentModal(student = null) {
     // Fill text forms
     document.getElementById('student-name').value = student.name;
     document.getElementById('student-phone').value = student.phone;
-    document.getElementById('student-aadhar').value = student.aadhar;
+    document.getElementById('student-aadhar').value = student.aadhar || '';
     document.getElementById('student-address').value = student.address;
     document.getElementById('student-joining').value = formatDate(student.joining);
     document.getElementById('student-branch').value = student.branch || 'SH Library';
@@ -2012,8 +2012,9 @@ function validateStep1() {
     phone.parentElement.classList.remove('invalid');
   }
 
-  // Validate Aadhar (12 digits)
-  if (!/^\d{12}$/.test(aadhar.value.trim())) {
+  // Validate Aadhar (12 digits, optional)
+  const aadharVal = aadhar.value.trim();
+  if (aadharVal !== '' && !/^\d{12}$/.test(aadharVal)) {
     aadhar.parentElement.classList.add('invalid');
     valid = false;
   } else {
@@ -2662,8 +2663,12 @@ function formatDate(dateStr) {
 }
 
 function formatAadhar(aadharStr) {
-  if (!aadharStr) return '--';
-  return aadharStr.replace(/(\d{4})(\d{4})(\d{4})/, '$1-$2-$3');
+  if (!aadharStr || !aadharStr.trim()) return '--';
+  const clean = aadharStr.trim();
+  if (clean.length === 12) {
+    return clean.replace(/(\d{4})(\d{4})(\d{4})/, '$1-$2-$3');
+  }
+  return clean;
 }
 
 function validateEmail(email) {
